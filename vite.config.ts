@@ -12,8 +12,8 @@ const config = defineConfig({
 		tailwindcss(),
 		tanstackStart({
 			spa: {
-				enabled: true,
-			}
+        enabled: true,
+      },
 		}),
 		viteReact(),
 	],
