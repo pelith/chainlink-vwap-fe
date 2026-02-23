@@ -31,6 +31,8 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          VITE_REOWN_PROJECT_ID: ${{ vars.VITE_REOWN_PROJECT_ID }}
 
       - name: Deploy to Netlify
         uses: netlify/actions/cli@master
