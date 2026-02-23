@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "skills": {
+    "react-architect-skills": {
+      "source": "Tianyili/skills",
+      "sourceType": "github",
+      "computedHash": "914ccd5cdc0123c11f962f8720d52f09e39fcb587ffd9422a895cca83b34bf76"
+    },
+    "vercel-react-only-best-practices": {
+      "source": "Tianyili/skills",
+      "sourceType": "github",
+      "computedHash": "b3405c6f6d4adf73937e297981c787df736412f2c9741694e59e11ad3982c792"
+    },
+    "web3-format-number": {
+      "source": "Tianyili/skills",
+      "sourceType": "github",
+      "computedHash": "6eefcd6a13bac9fd00dcaf02d9d91b4defdb45c7377a14639cd594369c5ef650"
+    }
+  }
+}
