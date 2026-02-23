@@ -1,67 +1,88 @@
-import { Link } from '@tanstack/react-router'
-
-import { useState } from 'react'
-import { Home, Menu, X } from 'lucide-react'
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Moon, Sun, Wallet } from "lucide-react";
+import { useTheme } from "#/contexts/theme-context";
 
 export default function Header() {
-  const [isOpen, setIsOpen] = useState(false)
+	const { isDarkMode, toggleDarkMode } = useTheme();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  return (
-    <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-          aria-label="Open menu"
-        >
-          <Menu size={24} />
-        </button>
-        <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
-            <img
-              src="/tanstack-word-logo-white.svg"
-              alt="TanStack Logo"
-              className="h-10"
-            />
-          </Link>
-        </h1>
-      </header>
+	const isActive = (path: string) => pathname === path;
 
-      <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-gray-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">Navigation</h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Close menu"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <Link
-            to="/"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <Home size={20} />
-            <span className="font-medium">Home</span>
-          </Link>
-
-          {/* Demo Links Start */}
-
-          {/* Demo Links End */}
-        </nav>
-      </aside>
-    </>
-  )
+	return (
+		<header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div className="flex items-center justify-between h-16">
+					<div className="flex items-center">
+						<Link to="/" className="flex items-center space-x-2">
+							<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-400 rounded-lg flex items-center justify-center">
+								<span className="text-white font-bold text-lg">V</span>
+							</div>
+							<span className="font-semibold text-xl text-gray-900 dark:text-white">
+								VWAP Spot
+							</span>
+						</Link>
+					</div>
+					<nav className="hidden md:flex space-x-8">
+						<Link
+							to="/"
+							className={`px-1 py-2 font-medium transition-colors ${
+								isActive("/")
+									? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+									: "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+							}`}
+						>
+							Market
+						</Link>
+						<Link
+							to="/my-quotes"
+							className={`px-1 py-2 font-medium transition-colors ${
+								isActive("/my-quotes")
+									? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+									: "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+							}`}
+						>
+							My Quotes
+						</Link>
+						<Link
+							to="/my-trades"
+							className={`px-1 py-2 font-medium transition-colors ${
+								isActive("/my-trades")
+									? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+									: "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+							}`}
+						>
+							My Trades
+						</Link>
+					</nav>
+					<div className="flex items-center space-x-4">
+						<button
+							type="button"
+							onClick={toggleDarkMode}
+							className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+							aria-label="Toggle dark mode"
+						>
+							{isDarkMode ? (
+								<Sun className="w-5 h-5" />
+							) : (
+								<Moon className="w-5 h-5" />
+							)}
+						</button>
+						<div className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+							<div className="w-2 h-2 bg-green-500 rounded-full" />
+							<span className="text-sm text-gray-700 dark:text-gray-300">
+								Ethereum
+							</span>
+						</div>
+						<button
+							type="button"
+							className="flex items-center space-x-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+						>
+							<Wallet className="w-4 h-4" />
+							<span>Connect Wallet</span>
+						</button>
+					</div>
+				</div>
+			</div>
+		</header>
+	);
 }

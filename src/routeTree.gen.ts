@@ -9,8 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as MyTradesRouteImport } from './routes/my-trades'
+import { Route as MyQuotesRouteImport } from './routes/my-quotes'
 import { Route as IndexRouteImport } from './routes/index'
 
+const MyTradesRoute = MyTradesRouteImport.update({
+  id: '/my-trades',
+  path: '/my-trades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyQuotesRoute = MyQuotesRouteImport.update({
+  id: '/my-quotes',
+  path: '/my-quotes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +31,50 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/my-quotes': typeof MyQuotesRoute
+  '/my-trades': typeof MyTradesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/my-quotes': typeof MyQuotesRoute
+  '/my-trades': typeof MyTradesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/my-quotes': typeof MyQuotesRoute
+  '/my-trades': typeof MyTradesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/my-quotes' | '/my-trades'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/my-quotes' | '/my-trades'
+  id: '__root__' | '/' | '/my-quotes' | '/my-trades'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MyQuotesRoute: typeof MyQuotesRoute
+  MyTradesRoute: typeof MyTradesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/my-trades': {
+      id: '/my-trades'
+      path: '/my-trades'
+      fullPath: '/my-trades'
+      preLoaderRoute: typeof MyTradesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-quotes': {
+      id: '/my-quotes'
+      path: '/my-quotes'
+      fullPath: '/my-quotes'
+      preLoaderRoute: typeof MyQuotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +87,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MyQuotesRoute: MyQuotesRoute,
+  MyTradesRoute: MyTradesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
