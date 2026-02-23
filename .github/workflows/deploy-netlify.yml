@@ -34,10 +34,10 @@ jobs:
         env:
           VITE_REOWN_PROJECT_ID: ${{ vars.VITE_REOWN_PROJECT_ID }}
 
-      - name: Deploy to Netlify
-        uses: netlify/actions/cli@master
+      - uses: qbtf/action-netlify-cli@v2
+        id: netlify
         with:
+          args: deploy --json --dir=dist/client --prod
+        env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 9e33e929-ec66-4670-b3d1-e159a9f71dcd
-          build-directory: dist/client
-          production-deploy: true
