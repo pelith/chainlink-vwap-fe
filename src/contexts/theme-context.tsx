@@ -17,7 +17,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 	const [isDarkMode, setIsDarkMode] = useState(() => {
 		if (typeof window === "undefined") return false;
 		const saved = localStorage.getItem("darkMode");
-		return saved ? JSON.parse(saved) : false;
+		return saved ? JSON.parse(saved) as boolean : false;
 	});
 
 	useEffect(() => {
