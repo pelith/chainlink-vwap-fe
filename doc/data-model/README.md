@@ -37,3 +37,7 @@ Maker 建立報價                    Taker 瀏覽市集
 - **/my-trades**：鎖倉與結算管理 → Trade
 
 各模型欄位與狀態細節請見上表連結之個別文件。
+
+## 資料來源（後端 vs 鏈上）
+
+訂單與交易的**資料從哪裡來**、**操作由誰執行**，請見專案根目錄下的 [資料來源分析](../data-sources.md)（[doc/data-sources.md](../data-sources.md)）：後端 API 負責 Order 建立／查詢、Trade 查詢與 DisplayStatus；鏈上合約負責 Fill、Settle、Refund 的執行，後端 Indexer 監聽事件後寫入 DB，前端再透過 API 取得最新狀態。
