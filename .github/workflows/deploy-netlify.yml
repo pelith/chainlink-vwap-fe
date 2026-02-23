@@ -33,7 +33,7 @@ jobs:
         run: pnpm build
 
       - name: Deploy to Netlify
-        uses: nwtaylor/github-action-netlify-deploy@v3
+        uses: netlify/actions/cli@master
         with:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 9e33e929-ec66-4670-b3d1-e159a9f71dcd
