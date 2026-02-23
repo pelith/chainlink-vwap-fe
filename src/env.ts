@@ -13,8 +13,8 @@ export const env = createEnv({
 	clientPrefix: 'VITE_',
 
 	client: {
-		VITE_API_URL: z.string().url().optional(),
-		VITE_SEPOLIA_RPC_URL: z.string().url().optional(),
+		VITE_API_URL: z.url().optional(),
+		VITE_SEPOLIA_RPC_URL: z.url().optional(),
 		VITE_REOWN_PROJECT_ID: z.string().optional(),
 	},
 
