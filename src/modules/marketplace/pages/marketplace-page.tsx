@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { FillOrderModal } from "@/modules/marketplace/components/fill-order-modal";
+import { useModalActions } from "@/modules/commons/hooks/modal/use-modal-actions";
+import {
+	FillOrderModal,
+	FILL_ORDER_MODAL_KEY,
+} from "@/modules/marketplace/components/fill-order-modal";
 import { MarketList } from "@/modules/marketplace/components/market-list";
 import { StatsSection } from "@/modules/marketplace/components/stats-section";
 import type { Order } from "@/modules/marketplace/types/marketplace.types";
@@ -8,20 +12,15 @@ import { mockOrders } from "@/modules/marketplace/utils/mock-orders";
 
 export function MarketplacePage() {
 	const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-	const [showModal, setShowModal] = useState(false);
+	const { onOpen, onClose } = useModalActions(FILL_ORDER_MODAL_KEY);
 
 	const handleFillClick = (order: Order) => {
 		setSelectedOrder(order);
-		setShowModal(true);
-	};
-
-	const handleCloseModal = () => {
-		setShowModal(false);
-		setSelectedOrder(null);
+		onOpen();
 	};
 
 	const handleConfirmFill = (_amount: string) => {
-		setShowModal(false);
+		onClose();
 		setSelectedOrder(null);
 		toast.success("Trade initiated! Funds locked for 12h settlement.", {
 			duration: 5000,
@@ -34,13 +33,11 @@ export function MarketplacePage() {
 				<StatsSection />
 				<MarketList orders={mockOrders} onFillClick={handleFillClick} />
 			</main>
-			{showModal && selectedOrder && (
-				<FillOrderModal
-					order={selectedOrder}
-					onClose={handleCloseModal}
-					onConfirm={handleConfirmFill}
-				/>
-			)}
+			<FillOrderModal
+				order={selectedOrder}
+				onConfirm={handleConfirmFill}
+				onCloseCallback={() => setSelectedOrder(null)}
+			/>
 		</div>
 	);
 }

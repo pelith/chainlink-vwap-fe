@@ -175,6 +175,41 @@ interface IUserNameProps {
 
 For values that might be undefined, verify and narrow in the parent (e.g., early return or conditional render) before passing to the pure component. The presentational component should receive only defined, required data.
 
+#### Dialog / Modal: Two-Level Structure (Reference)
+
+When a modal’s **open/close** is controlled by a store or parent (e.g. `useModalRegister` + `useModalActions`) and its **content** depends on external data (e.g. selected order) that can be `null`:
+
+- **Level 1 – Dialog**: Always mounted. Owns only open/close state (`open`, `onOpenChange`). Do **not** early-return or unmount the whole Dialog when data is missing; otherwise the dialog shell disappears and store/accessibility break.
+- **Level 2 – DialogContent**: Always mounted as the child of Dialog. Only the **content inside** DialogContent may be conditional on the external data.
+
+**Wrong:** Early return when data is null, which unmounts Dialog and breaks registration/close handling:
+
+```tsx
+// ❌ Don't do this
+if (!order) return null;
+return (
+  <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <DialogContent>...</DialogContent>
+  </Dialog>
+);
+```
+
+**Right:** Keep Dialog and DialogContent mounted; conditionally render only the inner content that uses the data. Use an inner component that receives the data as a **required** prop so that when data is set, the content never sees `undefined`:
+
+```tsx
+// ✅ Do this
+return (
+  <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <DialogContent>
+      {order ? <FormContent order={order} ... /> : null}
+    </DialogContent>
+  </Dialog>
+);
+```
+
+- The outer modal component keeps Dialog + DialogContent in the tree at all times and never returns `null` based on `order`.
+- The inner component (e.g. `FormContent`) takes `order: Order` as required and contains all logic/UI that reads `order`; it is only mounted when `order` is defined, so no undefined access.
+
 ## Common Module (Shared Kernel)
 
 The `common` module is a special project-level module for generic, domain-agnostic resources.

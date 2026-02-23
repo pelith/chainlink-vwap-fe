@@ -1,10 +1,10 @@
 ---
 name: react-architect-skills
-description: React and TanStack Router folder structure and feature-module architecture. Use when writing, reviewing, or refactoring React code for structure, naming, colocation, encapsulation, and layer separation. Triggers on React folder structure, naming rules, module boundaries, or architecture decisions.
+description: React and TanStack Router folder structure and feature-module architecture. Use when writing, reviewing, or refactoring React code for structure, naming, colocation, encapsulation, and layer separation. Triggers on React folder structure, naming rules, module boundaries, architecture decisions, or Dialog/Modal structure with external data.
 license: MIT
 metadata:
   author: paul-devv
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # React Feature Module Architecture
@@ -32,5 +32,7 @@ Use this skill when:
 - **Naming**: kebab-case for files and folders; suffixes like `-page`, `-container`, `-context`, `.types`, `.schema`, `use-*` for hooks.
 - **Modules**: Domain-first boundaries (e.g. `user-profile`, `order-processing`); flat structure; direct imports from source files (no barrel `index.ts`); enforce boundaries via ESLint rules.
 - **Pure components**: Pass primitives/specific values, not full data shapes; required props only; validate undefined in parent.
+
+For **Dialog/Modal with external data** (e.g. selected item): Keep Dialog and DialogContent always mounted; conditionally render only the inner content that uses the data. Do not early-return and unmount Dialog when data is null—see **[AGENTS.md](AGENTS.md)** § Dialog / Modal: Two-Level Structure.
 
 For the complete architecture guide (principles, module structure, layer rules, naming, no redundant/optional params, common module, cross-module communication, testing): **[AGENTS.md](AGENTS.md)**.
