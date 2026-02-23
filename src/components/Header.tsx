@@ -1,10 +1,17 @@
 import { Link, useRouterState } from '@tanstack/react-router';
+import { useAppKit, useAppKitAccount } from '@reown/appkit/react';
 import { Moon, Sun, Wallet } from 'lucide-react';
 import { useTheme } from '@/contexts/theme-context';
+
+function shortenAddress(address: string, chars = 4): string {
+	return `${address.slice(0, chars + 2)}…${address.slice(-chars)}`;
+}
 
 export default function Header() {
 	const { isDarkMode, toggleDarkMode } = useTheme();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const { open } = useAppKit();
+	const { address, isConnected } = useAppKitAccount();
 
 	const isActive = (path: string) => pathname === path;
 
@@ -70,15 +77,20 @@ export default function Header() {
 						<div className='flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg'>
 							<div className='w-2 h-2 bg-green-500 rounded-full' />
 							<span className='text-sm text-gray-700 dark:text-gray-300'>
-								Ethereum
+								Sepolia
 							</span>
 						</div>
 						<button
 							type='button'
+							onClick={() => open(isConnected ? { view: 'Account' } : { view: 'Connect' })}
 							className='flex items-center space-x-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors'
 						>
 							<Wallet className='w-4 h-4' />
-							<span>Connect Wallet</span>
+							<span>
+								{isConnected && address
+									? shortenAddress(address)
+									: 'Connect Wallet'}
+							</span>
 						</button>
 					</div>
 				</div>
