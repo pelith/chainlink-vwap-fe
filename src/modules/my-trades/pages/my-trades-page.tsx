@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { HistoryTab } from "#/modules/my-trades/components/history-tab";
-import { LockingTab } from "#/modules/my-trades/components/locking-tab";
-import { ReadyToSettleTab } from "#/modules/my-trades/components/ready-to-settle-tab";
-import type { Trade } from "#/modules/my-trades/types/my-trades.types";
+import { HistoryTab } from "@/modules/my-trades/components/history-tab";
+import { LockingTab } from "@/modules/my-trades/components/locking-tab";
+import { ReadyToSettleTab } from "@/modules/my-trades/components/ready-to-settle-tab";
+import type { Trade } from "@/modules/my-trades/types/my-trades.types";
 
 export function MyTradesPage() {
 	const [activeTab, setActiveTab] = useState<"locking" | "settle" | "history">(

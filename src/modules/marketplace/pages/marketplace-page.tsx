@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { FillOrderModal } from "#/modules/marketplace/components/fill-order-modal";
-import { MarketList } from "#/modules/marketplace/components/market-list";
-import { StatsSection } from "#/modules/marketplace/components/stats-section";
-import type { Order } from "#/modules/marketplace/types/marketplace.types";
-import { mockOrders } from "#/modules/marketplace/utils/mock-orders";
+import { FillOrderModal } from "@/modules/marketplace/components/fill-order-modal";
+import { MarketList } from "@/modules/marketplace/components/market-list";
+import { StatsSection } from "@/modules/marketplace/components/stats-section";
+import type { Order } from "@/modules/marketplace/types/marketplace.types";
+import { mockOrders } from "@/modules/marketplace/utils/mock-orders";
 
 export function MarketplacePage() {
 	const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);

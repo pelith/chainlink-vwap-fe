@@ -1,6 +1,6 @@
 import { FileText } from "lucide-react";
 import { useState } from "react";
-import type { MakerOrder } from "#/modules/my-quotes/types/my-quotes.types";
+import type { MakerOrder } from "@/modules/my-quotes/types/my-quotes.types";
 import { OrdersTable } from "./orders-table";
 
 interface OrderManagementProps {

@@ -1,8 +1,7 @@
 import { Clock, HelpCircle } from "lucide-react";
-import type { Order } from "#/modules/marketplace/types/marketplace.types";
-
-import usdcIcon from "#/assets/2654d0ea7067f6da4d09a20d5d807a46ea193b8e.png";
-import wethIcon from "#/assets/c68666dc78ff5ce7cd2de448ff99cf9fff49e11b.png";
+import usdcIcon from "@/assets/2654d0ea7067f6da4d09a20d5d807a46ea193b8e.png";
+import wethIcon from "@/assets/c68666dc78ff5ce7cd2de448ff99cf9fff49e11b.png";
+import type { Order } from "@/modules/marketplace/types/marketplace.types";
 
 interface QuoteListItemProps {
 	order: Order;

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { CreateQuoteForm } from "#/modules/my-quotes/components/create-quote-form";
-import { OrderManagement } from "#/modules/my-quotes/components/order-management";
-import { RiskMonitor } from "#/modules/my-quotes/components/risk-monitor";
-import type { MakerOrder } from "#/modules/my-quotes/types/my-quotes.types";
+import { CreateQuoteForm } from "@/modules/my-quotes/components/create-quote-form";
+import { OrderManagement } from "@/modules/my-quotes/components/order-management";
+import { RiskMonitor } from "@/modules/my-quotes/components/risk-monitor";
+import type { MakerOrder } from "@/modules/my-quotes/types/my-quotes.types";
 
 export function MyQuotesPage() {
 	const [orders, setOrders] = useState<MakerOrder[]>([

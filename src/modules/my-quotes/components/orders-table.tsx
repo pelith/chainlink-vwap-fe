@@ -1,5 +1,5 @@
 import { Clock, XCircle } from "lucide-react";
-import type { MakerOrder } from "#/modules/my-quotes/types/my-quotes.types";
+import type { MakerOrder } from "@/modules/my-quotes/types/my-quotes.types";
 
 interface OrdersTableProps {
 	orders: MakerOrder[];

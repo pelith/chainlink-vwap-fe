@@ -1,6 +1,6 @@
 import { AlertCircle, Calendar, Clock, Info, X } from "lucide-react";
 import { useState } from "react";
-import type { Order } from "#/modules/marketplace/types/marketplace.types";
+import type { Order } from "@/modules/marketplace/types/marketplace.types";
 
 interface FillOrderModalProps {
 	order: Order;

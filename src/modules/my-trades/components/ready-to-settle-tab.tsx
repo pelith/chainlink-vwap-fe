@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
-import type { Trade } from "#/modules/my-trades/types/my-trades.types";
+import type { Trade } from "@/modules/my-trades/types/my-trades.types";
 
 interface ReadyToSettleTabProps {
 	trades: Trade[];

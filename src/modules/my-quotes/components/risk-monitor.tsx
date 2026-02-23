@@ -1,5 +1,5 @@
 import { AlertTriangle, Shield, TrendingUp } from "lucide-react";
-import type { MakerOrder } from "#/modules/my-quotes/types/my-quotes.types";
+import type { MakerOrder } from "@/modules/my-quotes/types/my-quotes.types";
 
 interface RiskMonitorProps {
 	orders: MakerOrder[];

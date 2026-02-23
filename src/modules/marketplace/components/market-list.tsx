@@ -1,4 +1,4 @@
-import type { Order } from "#/modules/marketplace/types/marketplace.types";
+import type { Order } from "@/modules/marketplace/types/marketplace.types";
 import { QuoteListItem } from "./quote-list-item";
 
 interface MarketListProps {

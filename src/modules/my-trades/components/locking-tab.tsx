@@ -1,5 +1,5 @@
 import { Clock, Hourglass } from "lucide-react";
-import type { Trade } from "#/modules/my-trades/types/my-trades.types";
+import type { Trade } from "@/modules/my-trades/types/my-trades.types";
 
 interface LockingTabProps {
 	trades: Trade[];

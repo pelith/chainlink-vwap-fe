@@ -1,4 +1,4 @@
-import type { Order } from "#/modules/marketplace/types/marketplace.types";
+import type { Order } from "@/modules/marketplace/types/marketplace.types";
 
 export const mockOrders: Order[] = [
 	{

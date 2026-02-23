@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Moon, Sun, Wallet } from "lucide-react";
-import { useTheme } from "#/contexts/theme-context";
+import { useTheme } from "@/contexts/theme-context";
 
 export default function Header() {
 	const { isDarkMode, toggleDarkMode } = useTheme();
