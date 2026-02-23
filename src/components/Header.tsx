@@ -82,7 +82,9 @@ export default function Header() {
 						</div>
 						<button
 							type='button'
-							onClick={() => open(isConnected ? { view: 'Account' } : { view: 'Connect' })}
+							onClick={() =>
+								open(isConnected ? { view: 'Account' } : { view: 'Connect' })
+							}
 							className='flex items-center space-x-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors'
 						>
 							<Wallet className='w-4 h-4' />
