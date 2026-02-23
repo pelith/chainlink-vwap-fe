@@ -1,6 +1,6 @@
 export interface Order {
 	id: string;
-	direction: "SELL_WETH" | "SELL_USDC";
+	direction: 'SELL_WETH' | 'SELL_USDC';
 	amount: number;
 	token: string;
 	delta: number;

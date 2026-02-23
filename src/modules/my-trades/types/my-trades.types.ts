@@ -1,12 +1,12 @@
 export interface Trade {
 	id: string;
-	role: "Maker" | "Taker";
+	role: 'Maker' | 'Taker';
 	status:
-		| "locking"
-		| "ready_to_settle"
-		| "settled"
-		| "refunded"
-		| "expired_refundable";
+		| 'locking'
+		| 'ready_to_settle'
+		| 'settled'
+		| 'refunded'
+		| 'expired_refundable';
 	depositedAmount: number;
 	depositedToken: string;
 	targetAmount: number;

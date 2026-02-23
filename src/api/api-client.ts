@@ -1,5 +1,5 @@
-import { env } from "@/env";
-import type { ApiError } from "./api.types";
+import { env } from '@/env';
+import type { ApiError } from './api.types';
 
 /**
  * Returns the API base URL (no trailing slash), or empty string if not set.
@@ -7,8 +7,8 @@ import type { ApiError } from "./api.types";
  */
 export function getBaseUrl(): string {
 	const url = env.VITE_API_URL;
-	if (!url || typeof url !== "string") return "";
-	return url.replace(/\/$/, "");
+	if (!url || typeof url !== 'string') return '';
+	return url.replace(/\/$/, '');
 }
 
 export class ApiClientError extends Error {
@@ -17,11 +17,11 @@ export class ApiClientError extends Error {
 		public readonly status: number,
 	) {
 		super(message);
-		this.name = "ApiClientError";
+		this.name = 'ApiClientError';
 	}
 }
 
-type RequestInitWithBody = Omit<RequestInit, "body"> & {
+type RequestInitWithBody = Omit<RequestInit, 'body'> & {
 	body?: unknown;
 };
 
@@ -38,12 +38,16 @@ export async function apiFetch<T>(
 	const url = base ? `${base}${path}` : path;
 
 	const headers: HeadersInit = {
-		"Content-Type": "application/json; charset=utf-8",
+		'Content-Type': 'application/json; charset=utf-8',
 		...init?.headers,
 	};
 
 	let body: BodyInit | undefined;
-	if (init?.body !== undefined && typeof init.body === "object" && !(init.body instanceof FormData)) {
+	if (
+		init?.body !== undefined &&
+		typeof init.body === 'object' &&
+		!(init.body instanceof FormData)
+	) {
 		body = JSON.stringify(init.body);
 	} else {
 		body = init?.body as BodyInit | undefined;
@@ -59,7 +63,7 @@ export async function apiFetch<T>(
 		let message = response.statusText;
 		try {
 			const json = (await response.json()) as ApiError;
-			if (typeof json?.error === "string") message = json.error;
+			if (typeof json?.error === 'string') message = json.error;
 		} catch {
 			// ignore parse error
 		}

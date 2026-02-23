@@ -2,7 +2,7 @@
  * API types aligned with doc/api.md (VWAP-RFQ backend REST contract).
  */
 
-export type OrderStatus = "active" | "filled" | "cancelled" | "expired";
+export type OrderStatus = 'active' | 'filled' | 'cancelled' | 'expired';
 
 export interface Order {
 	order_hash: string;
@@ -38,14 +38,14 @@ export interface OrdersQueryParams {
 	offset?: number;
 }
 
-export type TradeStatus = "open" | "settled" | "refunded";
+export type TradeStatus = 'open' | 'settled' | 'refunded';
 
 export type TradeDisplayStatus =
-	| "locking"
-	| "ready_to_settle"
-	| "expired_refundable"
-	| "settled"
-	| "refunded";
+	| 'locking'
+	| 'ready_to_settle'
+	| 'expired_refundable'
+	| 'settled'
+	| 'refunded';
 
 export interface Trade {
 	trade_id: string;
