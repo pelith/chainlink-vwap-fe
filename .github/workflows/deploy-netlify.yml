@@ -37,7 +37,7 @@ jobs:
       - uses: qbtf/action-netlify-cli@v2
         id: netlify
         with:
-          args: deploy --json --dir=dist/client --prod
+          args: deploy --json --dir=dist --prod
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 9e33e929-ec66-4670-b3d1-e159a9f71dcd

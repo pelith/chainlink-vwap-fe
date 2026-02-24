@@ -1,10 +1,6 @@
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import type { QueryClient } from '@tanstack/react-query';
-import {
-	createRootRouteWithContext,
-	HeadContent,
-	Scripts,
-} from '@tanstack/react-router';
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { WagmiProvider } from 'wagmi';
 import Header from '@/components/Header';
@@ -12,7 +8,6 @@ import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/contexts/theme-context';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import TanStackQueryProvider from '@/integrations/tanstack-query/root-provider';
-import appCss from '@/styles.css?url';
 import { config } from '@/wagmi';
 
 interface MyRouterContext {
@@ -20,59 +15,31 @@ interface MyRouterContext {
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-	head: () => ({
-		meta: [
-			{
-				charSet: 'utf-8',
-			},
-			{
-				name: 'viewport',
-				content: 'width=device-width, initial-scale=1',
-			},
-			{
-				title: 'TanStack Start Starter',
-			},
-		],
-		links: [
-			{
-				rel: 'stylesheet',
-				href: appCss,
-			},
-		],
-	}),
-	shellComponent: RootDocument,
+	component: RootLayout,
 });
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootLayout() {
 	return (
-		<html lang='en'>
-			<head>
-				<HeadContent />
-			</head>
-			<body>
-				<ThemeProvider>
-					<TanStackQueryProvider>
-						<WagmiProvider config={config.wagmiConfig}>
-							<Header />
-							{children}
-						</WagmiProvider>
-						<Toaster position='top-right' />
-						<TanStackDevtools
-							config={{
-								position: 'bottom-right',
-							}}
-							plugins={[
-								{
-									name: 'Tanstack Router',
-									render: <TanStackRouterDevtoolsPanel />,
-								},
-								TanStackQueryDevtools,
-							]}
-						/>
-					</TanStackQueryProvider>
-				</ThemeProvider>
-				<Scripts />
-			</body>
-		</html>
+		<ThemeProvider>
+			<TanStackQueryProvider>
+				<WagmiProvider config={config.wagmiConfig}>
+					<Header />
+					<Outlet />
+				</WagmiProvider>
+				<Toaster position="top-right" />
+				<TanStackDevtools
+					config={{
+						position: 'bottom-right',
+					}}
+					plugins={[
+						{
+							name: 'Tanstack Router',
+							render: <TanStackRouterDevtoolsPanel />,
+						},
+						TanStackQueryDevtools,
+					]}
+				/>
+			</TanStackQueryProvider>
+		</ThemeProvider>
 	);
 }
