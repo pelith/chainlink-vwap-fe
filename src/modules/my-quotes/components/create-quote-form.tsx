@@ -20,6 +20,7 @@ import { sepolia } from 'wagmi/chains';
 import { parseUnits } from 'viem';
 import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
 import { env } from '@/env';
+import { useChainlinkEthPrice } from '@/modules/contracts/hooks/use-chainlink-eth-price';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
 import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
@@ -59,6 +60,7 @@ export function CreateQuoteForm({
 	const receiveToken = direction === 'SELL_WETH' ? 'USDC' : 'WETH';
 
 	const { usdc, weth } = useVwapRfqTokenAddresses(chainId);
+	const { price, isLoading: priceLoading } = useChainlinkEthPrice(chainId);
 	const tokenAddressForBalance = direction === 'SELL_WETH' ? weth : usdc;
 	const balanceData = useTokenInfoAndBalance(
 		address ?? '',
@@ -126,10 +128,14 @@ export function CreateQuoteForm({
 	const isPositiveDelta = Number.parseFloat(delta || '0') >= 0;
 
 	const handleAutoCalculate = () => {
+		if (price === undefined) {
+			toast.error('Price unavailable');
+			return;
+		}
 		const amount = form.getValues('amount');
 		if (!amount) return;
 		const amountBn = parseToBigNumber(amount);
-		const marketPriceBn = parseToBigNumber(3050);
+		const marketPriceBn = parseToBigNumber(price);
 		if (direction === 'SELL_WETH') {
 			form.setValue(
 				'minAmountOut',
@@ -289,10 +295,17 @@ export function CreateQuoteForm({
 								<button
 									type='button'
 									onClick={handleAutoCalculate}
-									className='mt-2 flex items-center space-x-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium'
+									disabled={price === undefined}
+									className='mt-2 flex items-center space-x-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed'
 								>
 									<Sparkles className='w-4 h-4' />
-									<span>Auto-calculate based on market price</span>
+									<span>
+										{priceLoading
+											? 'Loading price…'
+											: price === undefined
+												? 'Price unavailable'
+												: 'Auto-calculate based on market price'}
+									</span>
 								</button>
 								<div className='mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg'>
 									<div className='flex items-start space-x-2'>

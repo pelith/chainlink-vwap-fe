@@ -17,6 +17,8 @@ export const env = createEnv({
 		VITE_SEPOLIA_RPC_URL: z.url().optional(),
 		VITE_REOWN_PROJECT_ID: z.string().optional(),
 		VITE_VWAPRFQ_SPOT_ADDRESS: z.string().optional(),
+		VITE_VWAP_ORACLE_CONTRACT_ADDRESS: z.string().optional(),
+		VITE_CHAINLINK_ETH_USD_FEED_ADDRESS: z.string().optional(),
 	},
 
 	/**

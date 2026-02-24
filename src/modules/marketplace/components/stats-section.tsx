@@ -1,17 +1,32 @@
-import { Info, TrendingUp } from 'lucide-react';
+import { Info } from 'lucide-react';
+import { useChainId } from 'wagmi';
+import { useChainlinkEthPrice } from '@/modules/contracts/hooks/use-chainlink-eth-price';
+import { useVwapOraclePrice } from '@/modules/contracts/hooks/use-vwap-oracle-price';
 
 export function StatsSection() {
+	const chainId = useChainId();
+	const { priceFormatted, isLoading: chainlinkLoading } =
+		useChainlinkEthPrice(chainId);
+	const { vwapPriceFormatted, isLoading: vwapLoading } =
+		useVwapOraclePrice(chainId);
+
+	const marketPriceDisplay =
+		chainlinkLoading || priceFormatted === undefined
+			? '—'
+			: priceFormatted;
+	const vwapDisplay =
+		vwapLoading || vwapPriceFormatted === undefined
+			? '—'
+			: vwapPriceFormatted;
+
 	return (
 		<div className='mb-8'>
 			<div className='bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm'>
 				<div className='grid grid-cols-2 gap-0 mb-6'>
 					<div className='pr-6'>
-						<div className='flex items-center space-x-2 mb-2'>
-							<h3 className='text-sm text-gray-600 dark:text-gray-400'>
-								Current Market Price
-							</h3>
-							<TrendingUp className='w-5 h-5 text-green-500' />
-						</div>
+						<h3 className='text-sm text-gray-600 dark:text-gray-400 mb-2'>
+							Current Market Price
+						</h3>
 						<div className='flex items-baseline space-x-2'>
 							<span className='text-3xl font-semibold text-gray-900 dark:text-white'>
 								1 WETH
@@ -20,15 +35,12 @@ export function StatsSection() {
 								=
 							</span>
 							<span className='text-3xl font-semibold text-gray-900 dark:text-white'>
-								3,050
+								{marketPriceDisplay}
 							</span>
 							<span className='text-xl text-gray-600 dark:text-gray-400'>
 								USDC
 							</span>
 						</div>
-						<p className='text-sm text-green-600 dark:text-green-400 mt-2'>
-							+2.3% (24h)
-						</p>
 					</div>
 					<div className='border-l border-gray-200 dark:border-gray-700 pl-6'>
 						<div className='flex items-center space-x-2 mb-2'>
@@ -39,7 +51,7 @@ export function StatsSection() {
 						</div>
 						<div className='flex items-baseline space-x-2'>
 							<span className='text-3xl font-semibold text-gray-900 dark:text-white'>
-								3,042
+								{vwapDisplay}
 							</span>
 							<span className='text-xl text-gray-600 dark:text-gray-400'>
 								USDC
@@ -52,7 +64,7 @@ export function StatsSection() {
 				</div>
 				<div className='bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
 					<div className='flex items-start space-x-3'>
-						<Info className='w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5' />
+						<Info className='w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5' />
 						<div>
 							<p className='text-sm text-blue-900 dark:text-blue-200'>
 								<span className='font-medium'>Note:</span> Final settlement
