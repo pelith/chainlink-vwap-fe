@@ -14,10 +14,7 @@ export function MyQuotesPage() {
 		error: ordersError,
 		isError: isOrdersError,
 		isLoading: isOrdersLoading,
-	} = useOrders(
-		{ maker: address ?? undefined },
-		{ enabled: !!address },
-	);
+	} = useOrders({ maker: address ?? undefined }, { enabled: !!address });
 	const { mutateAsync: cancelOrderMutate } = useCancelOrder();
 	const { createOrderWithSignature, phase } = useCreateOrderFlow();
 
