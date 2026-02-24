@@ -75,12 +75,7 @@ export function useCreateOrderFlow() {
 				setPhase('idle');
 			}
 		},
-		[
-			address,
-			walletClient,
-			chainId,
-			createOrderMutate,
-		],
+		[address, walletClient, chainId, createOrderMutate],
 	);
 
 	const isPending = phase !== 'idle';

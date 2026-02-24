@@ -15,12 +15,17 @@ const USDC_DECIMALS = 6;
  */
 export function mapOrderToMakerOrder(order: Order): MakerOrder {
 	const direction = order.maker_is_sell_eth ? 'SELL_WETH' : 'SELL_USDC';
-	const amountDecimals = order.maker_is_sell_eth ? WETH_DECIMALS : USDC_DECIMALS;
+	const amountDecimals = order.maker_is_sell_eth
+		? WETH_DECIMALS
+		: USDC_DECIMALS;
 	const minAmountOutDecimals = order.maker_is_sell_eth
 		? USDC_DECIMALS
 		: WETH_DECIMALS;
 
-	const amountInFormatted = formatUnits(BigInt(order.amount_in), amountDecimals);
+	const amountInFormatted = formatUnits(
+		BigInt(order.amount_in),
+		amountDecimals,
+	);
 	const minAmountOutFormatted = formatUnits(
 		BigInt(order.min_amount_out),
 		minAmountOutDecimals,

@@ -26,7 +26,7 @@ function RootLayout() {
 					<Header />
 					<Outlet />
 				</WagmiProvider>
-				<Toaster position="top-right" />
+				<Toaster position='top-right' />
 				<TanStackDevtools
 					config={{
 						position: 'bottom-right',

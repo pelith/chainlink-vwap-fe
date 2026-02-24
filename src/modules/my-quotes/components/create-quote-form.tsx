@@ -11,7 +11,21 @@ import {
 } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Info, Sparkles } from 'lucide-react';
+import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
+import { useAppKitAccount } from '@reown/appkit/react';
+import { toast } from 'sonner';
+import { useChainId } from 'wagmi';
+import { sepolia } from 'wagmi/chains';
+import { parseUnits } from 'viem';
+import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
+import { env } from '@/env';
+import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
+import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
+import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
+
+const WETH_DECIMALS = 18;
+const USDC_DECIMALS = 6;
 
 interface CreateQuoteFormProps {
 	onSubmit: (data: CreateQuoteFormValues) => void | Promise<void>;
@@ -32,6 +46,8 @@ export function CreateQuoteForm({
 	phase = 'idle',
 	isDisabled = false,
 }: CreateQuoteFormProps) {
+	const chainId = useChainId();
+	const { address } = useAppKitAccount();
 	const form = useForm<CreateQuoteFormValues>({
 		resolver: zodResolver(createQuoteFormSchema),
 		defaultValues: DEFAULT_VALUES,
@@ -41,30 +57,91 @@ export function CreateQuoteForm({
 	const delta = form.watch('delta');
 	const sellToken = direction === 'SELL_WETH' ? 'WETH' : 'USDC';
 	const receiveToken = direction === 'SELL_WETH' ? 'USDC' : 'WETH';
-	const walletBalance = direction === 'SELL_WETH' ? '45.5' : '125,000';
 
-	const deltaPercent = delta ? (Number.parseFloat(delta) / 100).toFixed(2) : '0.00';
+	const { usdc, weth } = useVwapRfqTokenAddresses(chainId);
+	const tokenAddressForBalance = direction === 'SELL_WETH' ? weth : usdc;
+	const balanceData = useTokenInfoAndBalance(
+		address ?? '',
+		tokenAddressForBalance ?? '',
+		chainId,
+	);
+	const walletBalance =
+		typeof balanceData?.balance === 'string' ? balanceData.balance : null;
+
+	// Build allowanceConfig when form has valid amount and we have spender
+	const contractAddress = env.VITE_VWAPRFQ_SPOT_ADDRESS;
+	const amountStr = form.watch('amount');
+	const allowanceConfig = (() => {
+		if (!contractAddress || !amountStr || Number.parseFloat(amountStr) <= 0)
+			return null;
+		const tokenAddr = direction === 'SELL_WETH' ? weth : usdc;
+		if (!tokenAddr) return null;
+		try {
+			const decimals =
+				direction === 'SELL_WETH' ? WETH_DECIMALS : USDC_DECIMALS;
+			const amountRaw = parseUnits(amountStr, decimals);
+			return {
+				tokenAddress: tokenAddr,
+				amountRaw,
+				spender: contractAddress,
+				tokenSymbol: sellToken,
+			};
+		} catch {
+			return null;
+		}
+	})();
+
+	const handleSubmitAction = useCallback(async () => {
+		const valid = await form.trigger();
+		if (!valid) return;
+		const data = form.getValues();
+		const amountBn = parseToBigNumber(data.amount);
+		const balanceBn = parseToBigNumber(walletBalance ?? '0');
+		if (amountBn.gt(balanceBn)) {
+			toast.error('Insufficient balance');
+			return;
+		}
+		await onSubmit(data);
+		form.reset(DEFAULT_VALUES);
+	}, [form, onSubmit, walletBalance]);
+
+	const { step, label, onClick, isPending, disabled } = useWeb3SubmitButton({
+		requiredChainId: sepolia.id,
+		onSubmit: handleSubmitAction,
+		allowanceConfig,
+		submitLabel: 'Sign & Create Order',
+		submitPendingLabel:
+			phase === 'signing'
+				? 'Waiting for signature…'
+				: phase === 'submitting'
+					? 'Creating order…'
+					: undefined,
+		formDisabled: !form.formState.isValid,
+		isSubmitPending: phase !== 'idle',
+	});
+
+	const deltaPercent = delta
+		? (Number.parseFloat(delta) / 100).toFixed(2)
+		: '0.00';
 	const isPositiveDelta = Number.parseFloat(delta || '0') >= 0;
 
 	const handleAutoCalculate = () => {
 		const amount = form.getValues('amount');
 		if (!amount) return;
-		const amountNum = Number.parseFloat(amount);
-		const marketPrice = 3050;
+		const amountBn = parseToBigNumber(amount);
+		const marketPriceBn = parseToBigNumber(3050);
 		if (direction === 'SELL_WETH') {
-			form.setValue('minAmountOut', (amountNum * marketPrice * 0.8).toFixed(0));
+			form.setValue(
+				'minAmountOut',
+				amountBn.times(marketPriceBn).times(0.8).integerValue().toString(),
+			);
 		} else {
 			form.setValue(
 				'minAmountOut',
-				((amountNum / marketPrice) * 0.8).toFixed(2),
+				amountBn.div(marketPriceBn).times(0.8).toFixed(2),
 			);
 		}
 	};
-
-	const handleSubmit = form.handleSubmit(async (data) => {
-		await onSubmit(data);
-		form.reset(DEFAULT_VALUES);
-	});
 
 	return (
 		<div className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 sticky top-8'>
@@ -72,7 +149,7 @@ export function CreateQuoteForm({
 				Create New RFQ Order
 			</h2>
 			<Form {...form}>
-				<form onSubmit={handleSubmit} className='space-y-6'>
+				<form onSubmit={(e) => e.preventDefault()} className='space-y-6'>
 					<FormField
 						control={form.control}
 						name='direction'
@@ -138,7 +215,13 @@ export function CreateQuoteForm({
 									</div>
 								</FormControl>
 								<p className='text-sm text-gray-500 dark:text-gray-400'>
-									Balance: {walletBalance} {sellToken}
+									Balance:{' '}
+									{balanceData?.isLoading
+										? 'Loading…'
+										: walletBalance != null
+											? formatCommonNumber(walletBalance)
+											: '—'}{' '}
+									{sellToken}
 								</p>
 								<FormMessage />
 							</FormItem>
@@ -248,13 +331,19 @@ export function CreateQuoteForm({
 						)}
 					/>
 					<button
-						type='submit'
-						disabled={isDisabled || phase !== 'idle'}
+						type='button'
+						onClick={onClick}
+						disabled={disabled || (isDisabled && step === 'submit')}
 						className='w-full py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed'
 					>
-						{phase === 'signing' && 'Waiting for signature…'}
-						{phase === 'submitting' && 'Creating order…'}
-						{phase === 'idle' && 'Sign & Create Order'}
+						{isPending ? (
+							<>
+								<span className='inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
+								{label}
+							</>
+						) : (
+							label
+						)}
 					</button>
 				</form>
 			</Form>

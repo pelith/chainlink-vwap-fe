@@ -5,11 +5,22 @@ import {
 	DialogTitle,
 } from '@/components/ui/dialog';
 import { useModalRegister } from '@/modules/commons/hooks/modal/use-modal-register';
+import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
+import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
+import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
+import { env } from '@/env';
+import { useAppKitAccount } from '@reown/appkit/react';
 import { AlertCircle, Calendar, Clock, Info } from 'lucide-react';
 import { useState } from 'react';
+import { parseUnits } from 'viem';
+import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
+import { useChainId } from 'wagmi';
+import { sepolia } from 'wagmi/chains';
 import type { Order } from '@/modules/marketplace/types/marketplace.types';
 
 const MODAL_KEY = 'fill-order';
+const USDC_DECIMALS = 6;
+const WETH_DECIMALS = 18;
 
 interface FillOrderModalProps {
 	order: Order | null;
@@ -22,8 +33,6 @@ interface FillOrderFormContentProps {
 	order: Order;
 	depositAmount: string;
 	setDepositAmount: (v: string) => void;
-	isApproved: boolean;
-	onApprove: () => void;
 	onConfirm: (amount: string) => void;
 }
 
@@ -31,16 +40,59 @@ function FillOrderFormContent({
 	order,
 	depositAmount,
 	setDepositAmount,
-	isApproved,
-	onApprove,
 	onConfirm: onConfirmProp,
 }: FillOrderFormContentProps) {
+	const chainId = useChainId();
+	const { address } = useAppKitAccount();
+	const { usdc, weth } = useVwapRfqTokenAddresses(chainId);
+
 	const isSellWeth = order.direction === 'SELL_WETH';
 	const depositToken = isSellWeth ? 'USDC' : 'WETH';
+	const tokenAddress = isSellWeth ? usdc : weth;
+	const decimals = isSellWeth ? USDC_DECIMALS : WETH_DECIMALS;
 
-	const depositAmountNum = Number.parseFloat(depositAmount) || 0;
-	const hasError =
-		depositAmount !== '' && depositAmountNum < order.minAmountOut;
+	const balanceData = useTokenInfoAndBalance(
+		address ?? '',
+		tokenAddress ?? '',
+		chainId,
+	);
+	const balanceStr =
+		typeof balanceData?.balance === 'string' ? balanceData.balance : null;
+
+	const depositAmountBn = parseToBigNumber(depositAmount);
+	const balanceBn = parseToBigNumber(balanceStr ?? '0');
+	const minAmountBn = parseToBigNumber(order.minAmountOut);
+
+	const hasMinError = depositAmount !== '' && depositAmountBn.lt(minAmountBn);
+	const insufficientBalance =
+		depositAmount !== '' && depositAmountBn.gt(balanceBn);
+	const hasError = hasMinError || insufficientBalance;
+
+	const contractAddress = env.VITE_VWAPRFQ_SPOT_ADDRESS;
+	const allowanceConfig = (() => {
+		if (!contractAddress || !depositAmount || depositAmountBn.lte(0))
+			return null;
+		if (!tokenAddress) return null;
+		try {
+			const amountRaw = parseUnits(depositAmount, decimals);
+			return {
+				tokenAddress,
+				amountRaw,
+				spender: contractAddress,
+				tokenSymbol: depositToken,
+			};
+		} catch {
+			return null;
+		}
+	})();
+
+	const { label, onClick, isPending, disabled } = useWeb3SubmitButton({
+		requiredChainId: sepolia.id,
+		onSubmit: () => onConfirmProp(depositAmount),
+		allowanceConfig,
+		submitLabel: 'Confirm Fill',
+		formDisabled: hasError || !depositAmount || depositAmountBn.lt(minAmountBn),
+	});
 
 	const formatMinAmount = (amount: number, token: string) => {
 		if (token === 'USDC') {
@@ -49,7 +101,7 @@ function FillOrderFormContent({
 				maximumFractionDigits: 0,
 			});
 		}
-		return amount.toFixed(2);
+		return formatCommonNumber(amount);
 	};
 
 	const now = new Date();
@@ -61,12 +113,6 @@ function FillOrderFormContent({
 		hour: '2-digit',
 		minute: '2-digit',
 	});
-
-	const handleConfirm = () => {
-		if (!hasError && depositAmountNum >= order.minAmountOut && isApproved) {
-			onConfirmProp(depositAmount);
-		}
-	};
 
 	return (
 		<div className='relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full p-6'>
@@ -121,7 +167,7 @@ function FillOrderFormContent({
 					</span>
 				</div>
 			</div>
-			{hasError && (
+			{hasMinError && (
 				<div className='mb-4 flex items-start space-x-2 text-red-600 dark:text-red-400 text-sm'>
 					<AlertCircle className='w-4 h-4 shrink-0 mt-0.5' />
 					<span>
@@ -130,6 +176,21 @@ function FillOrderFormContent({
 					</span>
 				</div>
 			)}
+			{insufficientBalance && (
+				<div className='mb-4 flex items-start space-x-2 text-red-600 dark:text-red-400 text-sm'>
+					<AlertCircle className='w-4 h-4 shrink-0 mt-0.5' />
+					<span>Insufficient balance</span>
+				</div>
+			)}
+			<p className='mb-4 text-sm text-gray-500 dark:text-gray-400'>
+				Balance:{' '}
+				{balanceData?.isLoading
+					? 'Loading…'
+					: balanceStr != null
+						? formatCommonNumber(balanceStr)
+						: '—'}{' '}
+				{depositToken}
+			</p>
 			{!hasError && depositAmount === '' && (
 				<p className='mb-4 text-sm text-gray-500 dark:text-gray-400'>
 					Minimum deposit: {formatMinAmount(order.minAmountOut, depositToken)}{' '}
@@ -169,34 +230,21 @@ function FillOrderFormContent({
 					</div>
 				</div>
 			</div>
-			<div className='flex space-x-3'>
-				{!isApproved ? (
-					<button
-						type='button'
-						onClick={onApprove}
-						disabled={hasError || !depositAmount}
-						className='flex-1 px-6 py-3 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'
-					>
-						Approve {depositToken}
-					</button>
+			<button
+				type='button'
+				onClick={onClick}
+				disabled={disabled}
+				className='w-full px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+			>
+				{isPending ? (
+					<>
+						<span className='inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
+						{label}
+					</>
 				) : (
-					<button
-						type='button'
-						disabled
-						className='flex-1 px-6 py-3 bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-lg font-medium cursor-not-allowed'
-					>
-						✓ Approved
-					</button>
+					label
 				)}
-				<button
-					type='button'
-					onClick={handleConfirm}
-					disabled={!isApproved || hasError || !depositAmount}
-					className='flex-1 px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'
-				>
-					Confirm Fill
-				</button>
-			</div>
+			</button>
 		</div>
 	);
 }
@@ -208,13 +256,11 @@ export function FillOrderModal({
 }: FillOrderModalProps) {
 	const { isOpen, setOpen } = useModalRegister(MODAL_KEY);
 	const [depositAmount, setDepositAmount] = useState('');
-	const [isApproved, setIsApproved] = useState(false);
 
 	const handleOpenChange = (open: boolean) => {
 		setOpen(open);
 		if (!open) {
 			setDepositAmount('');
-			setIsApproved(false);
 			onCloseCallback?.();
 		}
 	};
@@ -230,8 +276,6 @@ export function FillOrderModal({
 						order={order}
 						depositAmount={depositAmount}
 						setDepositAmount={setDepositAmount}
-						isApproved={isApproved}
-						onApprove={() => setIsApproved(true)}
 						onConfirm={onConfirm}
 					/>
 				) : null}

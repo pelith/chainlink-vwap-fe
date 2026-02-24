@@ -40,7 +40,9 @@ function generateSalt(): bigint {
  * Converts form data to order params (for signing).
  * Validates 10000 + deltaBps > 0 per doc/eip712.md.
  */
-export function formDataToOrderParams(formData: CreateQuoteFormData): OrderParams {
+export function formDataToOrderParams(
+	formData: CreateQuoteFormData,
+): OrderParams {
 	const deltaBps = Number.parseInt(formData.delta, 10);
 	if (Number.isNaN(deltaBps)) {
 		throw new Error('Invalid delta');
@@ -54,7 +56,10 @@ export function formDataToOrderParams(formData: CreateQuoteFormData): OrderParam
 	const minAmountOutDecimals = makerIsSellETH ? USDC_DECIMALS : WETH_DECIMALS;
 
 	const amountInRaw = parseUnits(formData.amount, amountInDecimals);
-	const minAmountOutRaw = parseUnits(formData.minAmountOut, minAmountOutDecimals);
+	const minAmountOutRaw = parseUnits(
+		formData.minAmountOut,
+		minAmountOutDecimals,
+	);
 	const salt = generateSalt();
 	const deadline =
 		Math.floor(Date.now() / 1000) +

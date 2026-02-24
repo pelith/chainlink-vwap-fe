@@ -8,7 +8,10 @@ import { z } from 'zod';
 const positiveNumberString = z
 	.string()
 	.min(1, 'Required')
-	.refine((val) => !Number.isNaN(Number.parseFloat(val)), 'Must be a valid number')
+	.refine(
+		(val) => !Number.isNaN(Number.parseFloat(val)),
+		'Must be a valid number',
+	)
 	.refine((val) => Number.parseFloat(val) > 0, 'Must be greater than 0');
 
 const deltaBpsString = z
