@@ -9,14 +9,19 @@ import { mapOrderToMakerOrder } from '@/modules/my-quotes/utils/order-mapper';
 
 export function MyQuotesPage() {
 	const { address, isConnected } = useAppKitAccount();
-	const { data: ordersData = [] } = useOrders(
+	const {
+		data: ordersData,
+		error: ordersError,
+		isError: isOrdersError,
+		isLoading: isOrdersLoading,
+	} = useOrders(
 		{ maker: address ?? undefined },
 		{ enabled: !!address },
 	);
 	const { mutateAsync: cancelOrderMutate } = useCancelOrder();
 	const { createOrderWithSignature, phase } = useCreateOrderFlow();
 
-	const makerOrders = ordersData.map(mapOrderToMakerOrder);
+	const makerOrders = (ordersData ?? []).map(mapOrderToMakerOrder);
 
 	const handleCreateOrder = async (orderData: {
 		direction: 'SELL_WETH' | 'SELL_USDC';
@@ -50,6 +55,18 @@ export function MyQuotesPage() {
 						Connect your wallet to create and manage quotes
 					</p>
 				)}
+				{address && isOrdersError && (
+					<div className='mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'>
+						<p className='text-red-700 dark:text-red-300 font-medium'>
+							Failed to load orders
+						</p>
+						<p className='mt-1 text-sm text-red-600 dark:text-red-400'>
+							{ordersError instanceof Error
+								? ordersError.message
+								: String(ordersError)}
+						</p>
+					</div>
+				)}
 				<RiskMonitor orders={makerOrders} />
 				<div className='grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8'>
 					<div className='lg:col-span-1'>
@@ -63,6 +80,7 @@ export function MyQuotesPage() {
 						<OrderManagement
 							orders={makerOrders}
 							onCancelOrder={handleCancelOrder}
+							isLoading={isOrdersLoading}
 						/>
 					</div>
 				</div>

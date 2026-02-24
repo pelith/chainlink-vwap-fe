@@ -1,4 +1,4 @@
-import { FileText } from 'lucide-react';
+import { FileText, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import type { MakerOrder } from '@/modules/my-quotes/types/my-quotes.types';
 import { OrdersTable } from './orders-table';
@@ -6,6 +6,7 @@ import { OrdersTable } from './orders-table';
 interface OrderManagementProps {
 	orders: MakerOrder[];
 	onCancelOrder: (orderId: string) => void;
+	isLoading?: boolean;
 }
 
 type TabType = 'active' | 'filled' | 'cancelled';
@@ -13,6 +14,7 @@ type TabType = 'active' | 'filled' | 'cancelled';
 export function OrderManagement({
 	orders,
 	onCancelOrder,
+	isLoading = false,
 }: OrderManagementProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('active');
 
@@ -72,7 +74,14 @@ export function OrderManagement({
 				</div>
 			</div>
 			<div className='p-6'>
-				{filteredOrders.length === 0 ? (
+				{isLoading ? (
+					<div className='flex flex-col items-center justify-center py-12'>
+						<Loader2 className='w-12 h-12 text-blue-500 dark:text-blue-400 animate-spin mb-4' />
+						<p className='text-gray-500 dark:text-gray-400'>
+							Loading orders...
+						</p>
+					</div>
+				) : filteredOrders.length === 0 ? (
 					<div className='text-center py-12'>
 						<FileText className='w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4' />
 						<p className='text-gray-500 dark:text-gray-400 text-lg mb-2'>
