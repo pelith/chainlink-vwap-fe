@@ -37,6 +37,19 @@ Maker 在「My Quotes」建立的 RFQ 報價單，可視為市集上 Order 的 M
 - 管理報價：`OrderManagement` 列表顯示、取消（改為 cancelled）
 - 風險監控：`RiskMonitor` 依現有 MakerOrder 計算曝險
 
+## Create Order 流程與 UI 文案
+
+建立報價流程（`useCreateOrderFlow`）的 loading 與錯誤訊息文案皆以英文顯示：
+
+| 情境 | 文案 |
+|------|------|
+| 等候錢包簽名 | Waiting for signature… |
+| 等候後端建立 | Creating order… |
+| 未連結錢包 | Please connect your wallet first |
+| 無法取得錢包 | Unable to get wallet client |
+| 合約未設定 | Contract address is not configured |
+| My Quotes 未連線提示 | Connect your wallet to create and manage quotes |
+
 ## 與其他模型的關係
 
 - **Order**：同一筆報價在市集上以 Order 形式呈現（不含 status/createdAt）

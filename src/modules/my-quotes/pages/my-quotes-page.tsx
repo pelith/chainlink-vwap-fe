@@ -1,82 +1,42 @@
-import { useState } from 'react';
+import { useAppKitAccount } from '@reown/appkit/react';
 import { toast } from 'sonner';
+import { useCancelOrder, useOrders } from '@/api/use-orders-api';
 import { CreateQuoteForm } from '@/modules/my-quotes/components/create-quote-form';
 import { OrderManagement } from '@/modules/my-quotes/components/order-management';
 import { RiskMonitor } from '@/modules/my-quotes/components/risk-monitor';
-import type { MakerOrder } from '@/modules/my-quotes/types/my-quotes.types';
+import { useCreateOrderFlow } from '@/modules/my-quotes/hooks/use-create-order-flow';
+import { mapOrderToMakerOrder } from '@/modules/my-quotes/utils/order-mapper';
 
 export function MyQuotesPage() {
-	const [orders, setOrders] = useState<MakerOrder[]>([
-		{
-			id: '1001',
-			pair: 'WETH/USDC',
-			direction: 'SELL_WETH',
-			amount: 10.0,
-			token: 'WETH',
-			delta: 50,
-			minAmountOut: 25000,
-			expiryHours: 12,
-			status: 'active',
-			createdAt: new Date(),
-		},
-		{
-			id: '1002',
-			pair: 'WETH/USDC',
-			direction: 'SELL_USDC',
-			amount: 50000,
-			token: 'USDC',
-			delta: -30,
-			minAmountOut: 15.5,
-			expiryHours: 6,
-			status: 'active',
-			createdAt: new Date(),
-		},
-		{
-			id: '1003',
-			pair: 'WETH/USDC',
-			direction: 'SELL_WETH',
-			amount: 5.0,
-			token: 'WETH',
-			delta: 75,
-			minAmountOut: 14000,
-			expiryHours: 24,
-			status: 'filled',
-			createdAt: new Date(Date.now() - 86400000),
-		},
-	]);
+	const { address, isConnected } = useAppKitAccount();
+	const { data: ordersData = [] } = useOrders(
+		{ maker: address ?? undefined },
+		{ enabled: !!address },
+	);
+	const { mutateAsync: cancelOrderMutate } = useCancelOrder();
+	const { createOrderWithSignature, phase } = useCreateOrderFlow();
 
-	const handleCreateOrder = (orderData: {
+	const makerOrders = ordersData.map(mapOrderToMakerOrder);
+
+	const handleCreateOrder = async (orderData: {
 		direction: 'SELL_WETH' | 'SELL_USDC';
 		amount: string;
 		delta: string;
 		minAmountOut: string;
 		deadline: string;
 	}) => {
-		const newOrder: MakerOrder = {
-			id: Math.random().toString(36).slice(2, 11),
-			pair: 'WETH/USDC',
-			direction: orderData.direction,
-			amount: parseFloat(orderData.amount),
-			token: orderData.direction === 'SELL_WETH' ? 'WETH' : 'USDC',
-			delta: parseFloat(orderData.delta),
-			minAmountOut: parseFloat(orderData.minAmountOut),
-			expiryHours: parseInt(orderData.deadline, 10),
-			status: 'active',
-			createdAt: new Date(),
-		};
-		setOrders([newOrder, ...orders]);
-		toast.success('Order created successfully!');
+		await createOrderWithSignature(orderData);
 	};
 
-	const handleCancelOrder = (orderId: string) => {
-		setOrders(
-			orders.map((order) =>
-				order.id === orderId
-					? { ...order, status: 'cancelled' as const }
-					: order,
-			),
-		);
-		toast.success('Order cancelled successfully!');
+	const handleCancelOrder = async (orderId: string) => {
+		if (!address) return;
+		try {
+			await cancelOrderMutate({ hash: orderId, maker: address });
+			toast.success('Order cancelled successfully!');
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			toast.error(message);
+		}
 	};
 
 	return (
@@ -85,14 +45,23 @@ export function MyQuotesPage() {
 				<h1 className='text-3xl font-semibold text-gray-900 dark:text-white mb-8'>
 					My Quotes
 				</h1>
-				<RiskMonitor orders={orders} />
+				{!address && (
+					<p className='mb-6 text-gray-600 dark:text-gray-400'>
+						Connect your wallet to create and manage quotes
+					</p>
+				)}
+				<RiskMonitor orders={makerOrders} />
 				<div className='grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8'>
 					<div className='lg:col-span-1'>
-						<CreateQuoteForm onSubmit={handleCreateOrder} />
+						<CreateQuoteForm
+							onSubmit={handleCreateOrder}
+							phase={phase}
+							isDisabled={!isConnected}
+						/>
 					</div>
 					<div className='lg:col-span-2'>
 						<OrderManagement
-							orders={orders}
+							orders={makerOrders}
 							onCancelOrder={handleCancelOrder}
 						/>
 					</div>

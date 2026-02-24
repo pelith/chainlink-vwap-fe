@@ -1,5 +1,9 @@
 Reference: [architect](./.agents/skills/react-architect-skills)
 
+## UI 顯示文案
+
+**UI 顯示文案一律使用英文**。包含：按鈕文字、toast 訊息、表單提示、錯誤訊息、loading 狀態等。實作或新增功能時請以英文撰寫使用者可見的文案。
+
 ## 文件查閱（doc/）
 
 規格與說明文件索引見 [doc/README.md](./doc/README.md)。實作或改動時請依情境查閱：

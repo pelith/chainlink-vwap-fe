@@ -16,6 +16,7 @@ export const env = createEnv({
 		VITE_API_URL: z.url().optional(),
 		VITE_SEPOLIA_RPC_URL: z.url().optional(),
 		VITE_REOWN_PROJECT_ID: z.string().optional(),
+		VITE_VWAPRFQ_SPOT_ADDRESS: z.string().optional(),
 	},
 
 	/**

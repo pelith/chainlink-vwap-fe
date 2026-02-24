@@ -62,7 +62,7 @@ pnpm dlx shadcn@latest add button
 ## T3Env
 
 - You can use T3Env to add type safety to your environment variables.
-- Add Environment variables to the `src/env.mjs` file.
+- Add Environment variables to the `src/env.ts` file.
 - Use the environment variables in your code.
 
 ### Usage
@@ -72,6 +72,10 @@ import { env } from "@/env";
 
 console.log(env.VITE_APP_TITLE);
 ```
+
+### Create Order
+
+For the create order flow (My Quotes), set `VITE_VWAPRFQ_SPOT_ADDRESS` to the VWAPRFQSpot contract address on the deployment chain (e.g. Sepolia).
 
 
 

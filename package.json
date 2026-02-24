@@ -16,6 +16,7 @@
     "check": "biome check"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@prncss-xyz/zustand-optics": "^1.1.1",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
@@ -56,6 +57,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "immer": "^11.1.4",
     "input-otp": "^1.4.2",
