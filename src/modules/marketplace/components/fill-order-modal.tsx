@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { env } from '@/env';
 import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
+import { shortenHash } from '@/lib/shorten-hash';
 import { useModalRegister } from '@/modules/commons/hooks/modal/use-modal-register';
 import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
@@ -93,15 +94,7 @@ function FillOrderFormContent({
 		formDisabled: hasError || !depositAmount || depositAmountBn.lt(minAmountBn),
 	});
 
-	const formatMinAmount = (amount: number, token: string) => {
-		if (token === 'USDC') {
-			return amount.toLocaleString('en-US', {
-				minimumFractionDigits: 0,
-				maximumFractionDigits: 0,
-			});
-		}
-		return formatCommonNumber(amount);
-	};
+	const formatMinAmount = (amount: number) => formatCommonNumber(amount);
 
 	const now = new Date();
 	const settlementTime = new Date(now.getTime() + 12 * 60 * 60 * 1000);
@@ -118,7 +111,7 @@ function FillOrderFormContent({
 			<DialogHeader className='space-y-0'>
 				<div className='flex items-center justify-between mb-6'>
 					<DialogTitle className='text-2xl font-semibold text-gray-900 dark:text-white'>
-						Fill Order #{order.id}
+						Fill Order #{shortenHash(order.id)}
 					</DialogTitle>
 				</div>
 			</DialogHeader>
@@ -154,7 +147,7 @@ function FillOrderFormContent({
 						type='number'
 						value={depositAmount}
 						onChange={(e) => setDepositAmount(e.target.value)}
-						placeholder={`Min: ${formatMinAmount(order.minAmountOut, depositToken)}`}
+						placeholder={`Min: ${formatMinAmount(order.minAmountOut)}`}
 						className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:bg-gray-900/50 dark:text-white dark:placeholder-gray-400 ${
 							hasError
 								? 'border-red-500 bg-red-50 dark:bg-red-900/20'
@@ -170,8 +163,8 @@ function FillOrderFormContent({
 				<div className='mb-4 flex items-start space-x-2 text-red-600 dark:text-red-400 text-sm'>
 					<AlertCircle className='w-4 h-4 shrink-0 mt-0.5' />
 					<span>
-						Amount must be at least{' '}
-						{formatMinAmount(order.minAmountOut, depositToken)} {depositToken}
+						Amount must be at least {formatMinAmount(order.minAmountOut)}{' '}
+						{depositToken}
 					</span>
 				</div>
 			)}
@@ -192,8 +185,7 @@ function FillOrderFormContent({
 			</p>
 			{!hasError && depositAmount === '' && (
 				<p className='mb-4 text-sm text-gray-500 dark:text-gray-400'>
-					Minimum deposit: {formatMinAmount(order.minAmountOut, depositToken)}{' '}
-					{depositToken}
+					Minimum deposit: {formatMinAmount(order.minAmountOut)} {depositToken}
 				</p>
 			)}
 			<div className='mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3'>

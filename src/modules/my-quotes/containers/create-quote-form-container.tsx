@@ -125,15 +125,18 @@ export function CreateQuoteFormContainer({
 		if (!amount) return;
 		const amountBn = parseToBigNumber(amount);
 		const marketPriceBn = parseToBigNumber(price);
+		// Minimum Taker Deposit 以 receive token 顯示，小數位數依該 token 的 decimals
+		const receiveDecimals =
+			direction === 'SELL_WETH' ? USDC_DECIMALS : WETH_DECIMALS;
 		if (direction === 'SELL_WETH') {
 			form.setValue(
 				'minAmountOut',
-				amountBn.times(marketPriceBn).times(0.8).integerValue().toString(),
+				amountBn.times(marketPriceBn).times(0.8).toFixed(receiveDecimals),
 			);
 		} else {
 			form.setValue(
 				'minAmountOut',
-				amountBn.div(marketPriceBn).times(0.8).toFixed(2),
+				amountBn.div(marketPriceBn).times(0.8).toFixed(receiveDecimals),
 			);
 		}
 	}, [form, price, direction]);
@@ -151,6 +154,7 @@ export function CreateQuoteFormContainer({
 			: 'Auto-calculate based on market price';
 
 	const submitDisabled = disabled || (isDisabled && step === 'submit');
+	console.log('submitDisabled', disabled, isDisabled, step);
 
 	return (
 		<CreateQuoteForm

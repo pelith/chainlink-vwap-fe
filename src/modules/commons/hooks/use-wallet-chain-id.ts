@@ -7,7 +7,7 @@
 import { useAppKitNetwork } from '@reown/appkit/react';
 
 export function useWalletChainId(): number | undefined {
-	const { chainId: wagmiChainId,  } = useAppKitNetwork();
+	const { chainId: wagmiChainId } = useAppKitNetwork();
 	if (!wagmiChainId) return undefined;
 	return Number(wagmiChainId);
 }

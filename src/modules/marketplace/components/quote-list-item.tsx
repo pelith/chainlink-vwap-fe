@@ -1,7 +1,10 @@
 import { Clock, HelpCircle } from 'lucide-react';
 import usdcIcon from '@/assets/2654d0ea7067f6da4d09a20d5d807a46ea193b8e.png';
 import wethIcon from '@/assets/c68666dc78ff5ce7cd2de448ff99cf9fff49e11b.png';
+import { formatCommonNumber } from '@/lib/bignumber';
+import { shortenHash } from '@/lib/shorten-hash';
 import type { Order } from '@/modules/marketplace/types/marketplace.types';
+import { OrderExpiryCountdown } from './order-expiry-countdown';
 
 interface QuoteListItemProps {
 	order: Order;
@@ -15,16 +18,6 @@ export function QuoteListItem({ order, onFillClick }: QuoteListItemProps) {
 		order.delta >= 0
 			? 'text-green-600 dark:text-emerald-400'
 			: 'text-red-600 dark:text-red-400';
-
-	const formatAmount = (amount: number, token: string) => {
-		if (token === 'USDC') {
-			return amount.toLocaleString('en-US', {
-				minimumFractionDigits: 0,
-				maximumFractionDigits: 0,
-			});
-		}
-		return amount.toFixed(2);
-	};
 
 	const receiveToken = order.direction === 'SELL_WETH' ? 'USDC' : 'WETH';
 	const tokenIcon = order.token === 'USDC' ? usdcIcon : wethIcon;
@@ -58,7 +51,7 @@ export function QuoteListItem({ order, onFillClick }: QuoteListItemProps) {
 					</p>
 					<div className='flex items-baseline space-x-2'>
 						<span className='text-xl font-semibold text-gray-900 dark:text-slate-100'>
-							{formatAmount(order.amount, order.token)}
+							{formatCommonNumber(order.amount)}
 						</span>
 						<span className='text-sm text-gray-600 dark:text-slate-400 font-medium'>
 							{order.token}
@@ -88,7 +81,7 @@ export function QuoteListItem({ order, onFillClick }: QuoteListItemProps) {
 					</p>
 					<div className='flex items-baseline space-x-2'>
 						<span className='text-xl font-semibold text-gray-900 dark:text-slate-100'>
-							{formatAmount(order.minAmountOut, receiveToken)}
+							{formatCommonNumber(order.minAmountOut)}
 						</span>
 						<span className='text-sm text-gray-600 dark:text-slate-400 font-medium'>
 							{receiveToken}
@@ -97,14 +90,11 @@ export function QuoteListItem({ order, onFillClick }: QuoteListItemProps) {
 				</div>
 				<div className='flex flex-col space-y-1 flex-shrink-0 items-end min-w-[120px]'>
 					<span className='text-xs text-gray-500 dark:text-slate-500'>
-						#{order.id}
+						#{shortenHash(order.id)}
 					</span>
 					<div className='flex items-center space-x-2 text-gray-600 dark:text-slate-400'>
 						<Clock className='w-4 h-4' />
-						<span className='text-sm font-medium'>
-							{order.expiryHours.toString().padStart(2, '0')}h{' '}
-							{order.expiryMinutes.toString().padStart(2, '0')}m
-						</span>
+						<OrderExpiryCountdown deadline={order.deadline} />
 					</div>
 				</div>
 			</div>

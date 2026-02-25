@@ -1,15 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { cancelOrder, createOrder, getOrder, getOrders } from './orders.api';
-import type { CreateOrderBody, OrdersQueryParams } from './api.types';
+import type { CreateOrderBody, Order, OrdersQueryParams } from './api.types';
 
-export function useOrders(
+export function useOrders<TData = Order[]>(
 	params?: OrdersQueryParams,
-	options?: { enabled?: boolean },
+	options?: { enabled?: boolean; select?: (data: Order[]) => TData },
 ) {
 	return useQuery({
 		queryKey: ['orders', params],
 		queryFn: () => getOrders(params),
 		enabled: options?.enabled ?? true,
+		select: options?.select,
 	});
 }
 

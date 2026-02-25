@@ -92,10 +92,7 @@ export function useVwapOraclePrice(chainId?: number) {
 		isLoading,
 		error,
 		refetch: async () => {
-			await Promise.all([
-				configResult.refetch(),
-				priceResult.refetch(),
-			]);
+			await Promise.all([configResult.refetch(), priceResult.refetch()]);
 		},
 	};
 }

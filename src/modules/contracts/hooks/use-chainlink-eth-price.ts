@@ -49,11 +49,15 @@ export function useChainlinkEthPrice(chainId?: number) {
 				const answer = roundData?.[1];
 				const answerRaw =
 					answer !== undefined && !Number.isNaN(decimals)
-						? (typeof answer === 'bigint' ? answer : BigInt(Number(answer)))
+						? typeof answer === 'bigint'
+							? answer
+							: BigInt(Number(answer))
 						: undefined;
 
 				const priceFormattedStr =
-					answerRaw !== undefined ? formatUnits(answerRaw, decimals) : undefined;
+					answerRaw !== undefined
+						? formatUnits(answerRaw, decimals)
+						: undefined;
 				return {
 					price:
 						priceFormattedStr !== undefined

@@ -36,7 +36,7 @@ export function useCreateOrderFlow() {
 				toast.error('Unable to get wallet client');
 				return;
 			}
-			const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS
+			const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS;
 			if (!contractAddress) {
 				toast.error('Contract address is not configured');
 				return;

@@ -93,12 +93,10 @@ export function useWeb3SubmitButton({
 		chainId,
 	});
 
-	const {
-		data: approveReceipt,
-		isLoading: isApproveConfirming,
-	} = useWaitForTransactionReceipt({
-		hash: approveHash,
-	});
+	const { data: approveReceipt, isLoading: isApproveConfirming } =
+		useWaitForTransactionReceipt({
+			hash: approveHash,
+		});
 
 	const handleConnect = useCallback(() => {
 		open({ view: 'Connect' });
@@ -195,6 +193,16 @@ export function useWeb3SubmitButton({
 	const disabled =
 		(step === 'submit' && (formDisabled || isSubmitPending)) ||
 		(step === 'approve' && (isApprovePending || isApproveConfirming));
+
+	console.log(
+		'disabled',
+		disabled,
+		step,
+		formDisabled,
+		isSubmitPending,
+		isApprovePending,
+		isApproveConfirming,
+	);
 
 	return {
 		step,

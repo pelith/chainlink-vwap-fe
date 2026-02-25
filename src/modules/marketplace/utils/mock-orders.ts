@@ -1,5 +1,8 @@
 import type { Order } from '@/modules/marketplace/types/marketplace.types';
 
+const now = Math.floor(Date.now() / 1000);
+const h = (hours: number, minutes: number) => now + hours * 3600 + minutes * 60;
+
 export const mockOrders: Order[] = [
 	{
 		id: '1234',
@@ -8,8 +11,7 @@ export const mockOrders: Order[] = [
 		token: 'WETH',
 		delta: 50,
 		minAmountOut: 25000,
-		expiryHours: 5,
-		expiryMinutes: 20,
+		deadline: h(5, 20),
 	},
 	{
 		id: '1235',
@@ -18,8 +20,7 @@ export const mockOrders: Order[] = [
 		token: 'USDC',
 		delta: -30,
 		minAmountOut: 15.5,
-		expiryHours: 3,
-		expiryMinutes: 45,
+		deadline: h(3, 45),
 	},
 	{
 		id: '1236',
@@ -28,8 +29,7 @@ export const mockOrders: Order[] = [
 		token: 'WETH',
 		delta: 75,
 		minAmountOut: 60000,
-		expiryHours: 8,
-		expiryMinutes: 10,
+		deadline: h(8, 10),
 	},
 	{
 		id: '1237',
@@ -38,8 +38,7 @@ export const mockOrders: Order[] = [
 		token: 'USDC',
 		delta: -50,
 		minAmountOut: 32.0,
-		expiryHours: 2,
-		expiryMinutes: 30,
+		deadline: h(2, 30),
 	},
 	{
 		id: '1238',
@@ -48,8 +47,7 @@ export const mockOrders: Order[] = [
 		token: 'WETH',
 		delta: 25,
 		minAmountOut: 15000,
-		expiryHours: 6,
-		expiryMinutes: 0,
+		deadline: h(6, 0),
 	},
 	{
 		id: '1239',
@@ -58,7 +56,6 @@ export const mockOrders: Order[] = [
 		token: 'USDC',
 		delta: -20,
 		minAmountOut: 24.5,
-		expiryHours: 4,
-		expiryMinutes: 15,
+		deadline: h(4, 15),
 	},
 ];

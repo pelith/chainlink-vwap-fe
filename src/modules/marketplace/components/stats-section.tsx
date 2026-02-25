@@ -11,13 +11,9 @@ export function StatsSection() {
 		useVwapOraclePrice(chainId);
 
 	const marketPriceDisplay =
-		chainlinkLoading || priceFormatted === undefined
-			? '—'
-			: priceFormatted;
+		chainlinkLoading || priceFormatted === undefined ? '—' : priceFormatted;
 	const vwapDisplay =
-		vwapLoading || vwapPriceFormatted === undefined
-			? '—'
-			: vwapPriceFormatted;
+		vwapLoading || vwapPriceFormatted === undefined ? '—' : vwapPriceFormatted;
 
 	return (
 		<div className='mb-8'>

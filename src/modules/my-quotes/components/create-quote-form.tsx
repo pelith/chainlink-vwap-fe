@@ -46,11 +46,24 @@ export function CreateQuoteForm({
 	submitDisabled,
 	submitIsPending,
 }: CreateQuoteFormProps) {
+	const hasErrors = Object.keys(form.formState.errors).length > 0;
+	const formErrorMessage = hasErrors
+		? 'Please fix the errors below before submitting.'
+		: null;
+
 	return (
 		<div className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 sticky top-8'>
 			<h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
 				Create New RFQ Order
 			</h2>
+			{formErrorMessage && (
+				<div
+					role='alert'
+					className='mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm'
+				>
+					{formErrorMessage}
+				</div>
+			)}
 			<Form {...form}>
 				<form onSubmit={(e) => e.preventDefault()} className='space-y-6'>
 					<FormField

@@ -5,6 +5,5 @@ export interface Order {
 	token: string;
 	delta: number;
 	minAmountOut: number;
-	expiryHours: number;
-	expiryMinutes: number;
+	deadline: number;
 }
