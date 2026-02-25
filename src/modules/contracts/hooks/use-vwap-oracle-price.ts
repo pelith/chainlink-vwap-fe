@@ -4,16 +4,16 @@
  * Uses formatCommonNumber for display per web3-format-number skill.
  */
 
-import type { Address } from 'viem';
 import { getUnixTime, startOfHour, subHours } from 'date-fns';
 import { useMemo } from 'react';
+import type { Address } from 'viem';
 import { useReadContract, useReadContracts } from 'wagmi';
 import { env } from '@/env';
 import { formatCommonNumber } from '@/lib/bignumber';
 import { IVWAPOracleAbi } from '@/modules/contracts/constants/abis/IVWAPOracle';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 
-const contractAddress = env.VITE_VWAPRFQ_SPOT_ADDRESS as Address | undefined;
+const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS as Address | undefined;
 
 /** Price = (USDC per 1 ETH) * 1e6, display = price / 1e6 */
 const USDC_SCALE = 1e6;

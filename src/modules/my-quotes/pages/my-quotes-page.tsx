@@ -1,7 +1,7 @@
 import { useAppKitAccount } from '@reown/appkit/react';
 import { toast } from 'sonner';
 import { useCancelOrder, useOrders } from '@/api/use-orders-api';
-import { CreateQuoteForm } from '@/modules/my-quotes/components/create-quote-form';
+import { CreateQuoteFormContainer } from '@/modules/my-quotes/containers/create-quote-form-container';
 import { OrderManagement } from '@/modules/my-quotes/components/order-management';
 import { RiskMonitor } from '@/modules/my-quotes/components/risk-monitor';
 import { useCreateOrderFlow } from '@/modules/my-quotes/hooks/use-create-order-flow';
@@ -67,7 +67,7 @@ export function MyQuotesPage() {
 				<RiskMonitor orders={makerOrders} />
 				<div className='grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8'>
 					<div className='lg:col-span-1'>
-						<CreateQuoteForm
+						<CreateQuoteFormContainer
 							onSubmit={handleCreateOrder}
 							phase={phase}
 							isDisabled={!isConnected}

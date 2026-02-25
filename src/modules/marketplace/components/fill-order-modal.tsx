@@ -1,21 +1,20 @@
+import { useAppKitAccount } from '@reown/appkit/react';
+import { AlertCircle, Calendar, Clock, Info } from 'lucide-react';
+import { useState } from 'react';
+import { parseUnits } from 'viem';
+import { sepolia } from 'wagmi/chains';
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
+import { env } from '@/env';
+import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
 import { useModalRegister } from '@/modules/commons/hooks/modal/use-modal-register';
 import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
-import { env } from '@/env';
-import { useAppKitAccount } from '@reown/appkit/react';
-import { AlertCircle, Calendar, Clock, Info } from 'lucide-react';
-import { useState } from 'react';
-import { parseUnits } from 'viem';
-import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
-import { useChainId } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
 import type { Order } from '@/modules/marketplace/types/marketplace.types';
 
 const MODAL_KEY = 'fill-order';
@@ -42,7 +41,7 @@ function FillOrderFormContent({
 	setDepositAmount,
 	onConfirm: onConfirmProp,
 }: FillOrderFormContentProps) {
-	const chainId = useChainId();
+	const chainId = sepolia.id;
 	const { address } = useAppKitAccount();
 	const { usdc, weth } = useVwapRfqTokenAddresses(chainId);
 
@@ -68,7 +67,7 @@ function FillOrderFormContent({
 		depositAmount !== '' && depositAmountBn.gt(balanceBn);
 	const hasError = hasMinError || insufficientBalance;
 
-	const contractAddress = env.VITE_VWAPRFQ_SPOT_ADDRESS;
+	const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS;
 	const allowanceConfig = (() => {
 		if (!contractAddress || !depositAmount || depositAmountBn.lte(0))
 			return null;

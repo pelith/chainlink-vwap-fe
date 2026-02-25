@@ -75,7 +75,7 @@ console.log(env.VITE_APP_TITLE);
 
 ### Create Order
 
-For the create order flow (My Quotes), set `VITE_VWAPRFQ_SPOT_ADDRESS` to the VWAPRFQSpot contract address on the deployment chain (e.g. Sepolia).
+For the create order flow (My Quotes), set `VITE_VWAP_CONTRACT_ADDRESS` to the VWAPRFQSpot contract address on the deployment chain (e.g. Sepolia).
 
 
 

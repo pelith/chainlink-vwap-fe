@@ -7,7 +7,7 @@ import { useReadContracts } from 'wagmi';
 import { env } from '@/env';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 
-const contractAddress = env.VITE_VWAPRFQ_SPOT_ADDRESS as Address | undefined;
+const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS as Address | undefined;
 
 export function useVwapRfqTokenAddresses(chainId?: number) {
 	const result = useReadContracts({

@@ -1,7 +1,7 @@
 import { createAppKit } from '@reown/appkit/react';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { http } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
+import { mainnet, sepolia } from 'wagmi/chains';
 import { injected } from 'wagmi/connectors';
 import { env } from './env';
 
@@ -12,11 +12,12 @@ if (!projectId) {
 }
 
 export const config = new WagmiAdapter({
-	networks: [sepolia],
+	networks: [mainnet, sepolia],
 	projectId,
 	ssr: false,
 	connectors: [injected()],
 	transports: {
+		[mainnet.id]: http(mainnet.rpcUrls.default.http[0]),
 		[sepolia.id]: http(
 			env.VITE_SEPOLIA_RPC_URL || sepolia.rpcUrls.default.http[0],
 		),
@@ -25,7 +26,7 @@ export const config = new WagmiAdapter({
 
 createAppKit({
 	adapters: [config],
-	networks: [sepolia],
+	networks: [mainnet, sepolia],
 	projectId,
 	metadata: {
 		name: 'Chainlink VWAP',

@@ -1,6 +1,10 @@
-import type { CreateOrderPhase } from '@/modules/my-quotes/hooks/use-create-order-flow';
-import { createQuoteFormSchema } from '@/modules/my-quotes/schemas/create-quote-form-schema';
-import type { CreateQuoteFormValues } from '@/modules/my-quotes/schemas/create-quote-form-schema';
+/**
+ * Presentational layer: pure UI for Create Quote form.
+ * Receives form control and display values from container.
+ */
+
+import { Info, Sparkles } from 'lucide-react';
+import type { UseFormReturn } from 'react-hook-form';
 import {
 	Form,
 	FormControl,
@@ -9,146 +13,39 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Info, Sparkles } from 'lucide-react';
-import { useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { useAppKitAccount } from '@reown/appkit/react';
-import { toast } from 'sonner';
-import { useChainId } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
-import { parseUnits } from 'viem';
-import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
-import { env } from '@/env';
-import { useChainlinkEthPrice } from '@/modules/contracts/hooks/use-chainlink-eth-price';
-import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
-import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
-import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
+import type { CreateQuoteFormValues } from '@/modules/my-quotes/schemas/create-quote-form-schema';
 
-const WETH_DECIMALS = 18;
-const USDC_DECIMALS = 6;
-
-interface CreateQuoteFormProps {
-	onSubmit: (data: CreateQuoteFormValues) => void | Promise<void>;
-	phase?: CreateOrderPhase;
-	isDisabled?: boolean;
+export interface CreateQuoteFormProps {
+	form: UseFormReturn<CreateQuoteFormValues>;
+	sellToken: string;
+	receiveToken: string;
+	balanceDisplayText: string;
+	deltaPercent: string;
+	isPositiveDelta: boolean;
+	autoCalculateButtonLabel: string;
+	autoCalculateDisabled: boolean;
+	onAutoCalculate: () => void;
+	submitButtonLabel: string;
+	onSubmitClick: () => void;
+	submitDisabled: boolean;
+	submitIsPending: boolean;
 }
 
-const DEFAULT_VALUES: CreateQuoteFormValues = {
-	direction: 'SELL_WETH',
-	amount: '',
-	delta: '',
-	minAmountOut: '',
-	deadline: '12',
-};
-
 export function CreateQuoteForm({
-	onSubmit,
-	phase = 'idle',
-	isDisabled = false,
+	form,
+	sellToken,
+	receiveToken,
+	balanceDisplayText,
+	deltaPercent,
+	isPositiveDelta,
+	autoCalculateButtonLabel,
+	autoCalculateDisabled,
+	onAutoCalculate,
+	submitButtonLabel,
+	onSubmitClick,
+	submitDisabled,
+	submitIsPending,
 }: CreateQuoteFormProps) {
-	const chainId = useChainId();
-	const { address } = useAppKitAccount();
-	const form = useForm<CreateQuoteFormValues>({
-		resolver: zodResolver(createQuoteFormSchema),
-		defaultValues: DEFAULT_VALUES,
-	});
-
-	const direction = form.watch('direction');
-	const delta = form.watch('delta');
-	const sellToken = direction === 'SELL_WETH' ? 'WETH' : 'USDC';
-	const receiveToken = direction === 'SELL_WETH' ? 'USDC' : 'WETH';
-
-	const { usdc, weth } = useVwapRfqTokenAddresses(chainId);
-	const { price, isLoading: priceLoading } = useChainlinkEthPrice(chainId);
-	const tokenAddressForBalance = direction === 'SELL_WETH' ? weth : usdc;
-	const balanceData = useTokenInfoAndBalance(
-		address ?? '',
-		tokenAddressForBalance ?? '',
-		chainId,
-	);
-	const walletBalance =
-		typeof balanceData?.balance === 'string' ? balanceData.balance : null;
-
-	// Build allowanceConfig when form has valid amount and we have spender
-	const contractAddress = env.VITE_VWAPRFQ_SPOT_ADDRESS;
-	const amountStr = form.watch('amount');
-	const allowanceConfig = (() => {
-		if (!contractAddress || !amountStr || Number.parseFloat(amountStr) <= 0)
-			return null;
-		const tokenAddr = direction === 'SELL_WETH' ? weth : usdc;
-		if (!tokenAddr) return null;
-		try {
-			const decimals =
-				direction === 'SELL_WETH' ? WETH_DECIMALS : USDC_DECIMALS;
-			const amountRaw = parseUnits(amountStr, decimals);
-			return {
-				tokenAddress: tokenAddr,
-				amountRaw,
-				spender: contractAddress,
-				tokenSymbol: sellToken,
-			};
-		} catch {
-			return null;
-		}
-	})();
-
-	const handleSubmitAction = useCallback(async () => {
-		const valid = await form.trigger();
-		if (!valid) return;
-		const data = form.getValues();
-		const amountBn = parseToBigNumber(data.amount);
-		const balanceBn = parseToBigNumber(walletBalance ?? '0');
-		if (amountBn.gt(balanceBn)) {
-			toast.error('Insufficient balance');
-			return;
-		}
-		await onSubmit(data);
-		form.reset(DEFAULT_VALUES);
-	}, [form, onSubmit, walletBalance]);
-
-	const { step, label, onClick, isPending, disabled } = useWeb3SubmitButton({
-		requiredChainId: sepolia.id,
-		onSubmit: handleSubmitAction,
-		allowanceConfig,
-		submitLabel: 'Sign & Create Order',
-		submitPendingLabel:
-			phase === 'signing'
-				? 'Waiting for signature…'
-				: phase === 'submitting'
-					? 'Creating order…'
-					: undefined,
-		formDisabled: !form.formState.isValid,
-		isSubmitPending: phase !== 'idle',
-	});
-
-	const deltaPercent = delta
-		? (Number.parseFloat(delta) / 100).toFixed(2)
-		: '0.00';
-	const isPositiveDelta = Number.parseFloat(delta || '0') >= 0;
-
-	const handleAutoCalculate = () => {
-		if (price === undefined) {
-			toast.error('Price unavailable');
-			return;
-		}
-		const amount = form.getValues('amount');
-		if (!amount) return;
-		const amountBn = parseToBigNumber(amount);
-		const marketPriceBn = parseToBigNumber(price);
-		if (direction === 'SELL_WETH') {
-			form.setValue(
-				'minAmountOut',
-				amountBn.times(marketPriceBn).times(0.8).integerValue().toString(),
-			);
-		} else {
-			form.setValue(
-				'minAmountOut',
-				amountBn.div(marketPriceBn).times(0.8).toFixed(2),
-			);
-		}
-	};
-
 	return (
 		<div className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 sticky top-8'>
 			<h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
@@ -221,13 +118,7 @@ export function CreateQuoteForm({
 									</div>
 								</FormControl>
 								<p className='text-sm text-gray-500 dark:text-gray-400'>
-									Balance:{' '}
-									{balanceData?.isLoading
-										? 'Loading…'
-										: walletBalance != null
-											? formatCommonNumber(walletBalance)
-											: '—'}{' '}
-									{sellToken}
+									Balance: {balanceDisplayText} {sellToken}
 								</p>
 								<FormMessage />
 							</FormItem>
@@ -294,18 +185,12 @@ export function CreateQuoteForm({
 								</FormControl>
 								<button
 									type='button'
-									onClick={handleAutoCalculate}
-									disabled={price === undefined}
+									onClick={onAutoCalculate}
+									disabled={autoCalculateDisabled}
 									className='mt-2 flex items-center space-x-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed'
 								>
 									<Sparkles className='w-4 h-4' />
-									<span>
-										{priceLoading
-											? 'Loading price…'
-											: price === undefined
-												? 'Price unavailable'
-												: 'Auto-calculate based on market price'}
-									</span>
+									<span>{autoCalculateButtonLabel}</span>
 								</button>
 								<div className='mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg'>
 									<div className='flex items-start space-x-2'>
@@ -345,17 +230,17 @@ export function CreateQuoteForm({
 					/>
 					<button
 						type='button'
-						onClick={onClick}
-						disabled={disabled || (isDisabled && step === 'submit')}
+						onClick={onSubmitClick}
+						disabled={submitDisabled}
 						className='w-full py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed'
 					>
-						{isPending ? (
+						{submitIsPending ? (
 							<>
 								<span className='inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
-								{label}
+								{submitButtonLabel}
 							</>
 						) : (
-							label
+							submitButtonLabel
 						)}
 					</button>
 				</form>

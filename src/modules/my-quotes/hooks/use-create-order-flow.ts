@@ -4,23 +4,24 @@
  */
 
 import { useAppKitAccount } from '@reown/appkit/react';
-import { useState, useCallback } from 'react';
-import { useChainId, useWalletClient } from 'wagmi';
-import { env } from '@/env';
+import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
+import { useWalletClient } from 'wagmi';
+import { sepolia } from 'wagmi/chains';
 import { useCreateOrder } from '@/api/use-orders-api';
+import { env } from '@/env';
 import { signOrder } from '@/modules/contracts/utils/order-signing';
 import {
 	buildCreateOrderBody,
-	formDataToOrderParams,
 	type CreateQuoteFormData,
+	formDataToOrderParams,
 } from '@/modules/my-quotes/utils/order-formatters';
-import { toast } from 'sonner';
 
 export type CreateOrderPhase = 'idle' | 'signing' | 'submitting';
 
 export function useCreateOrderFlow() {
 	const { address } = useAppKitAccount();
-	const chainId = useChainId();
+	const chainId = sepolia.id;
 	const { data: walletClient } = useWalletClient();
 	const { mutateAsync: createOrderMutate } = useCreateOrder();
 	const [phase, setPhase] = useState<CreateOrderPhase>('idle');
@@ -35,7 +36,7 @@ export function useCreateOrderFlow() {
 				toast.error('Unable to get wallet client');
 				return;
 			}
-			const contractAddress = env.VITE_VWAPRFQ_SPOT_ADDRESS;
+			const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS
 			if (!contractAddress) {
 				toast.error('Contract address is not configured');
 				return;

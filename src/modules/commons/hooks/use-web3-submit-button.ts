@@ -4,15 +4,15 @@
  */
 
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react';
-import { useCallback, useMemo } from 'react';
-import { sepolia } from 'wagmi/chains';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
 	useChainId,
 	useSwitchChain,
 	useWaitForTransactionReceipt,
 } from 'wagmi';
-import { useTokenAllowance } from '@/modules/contracts/hooks/use-token-allowance';
+import { mainnet, sepolia } from 'wagmi/chains';
 import { useApproveToken } from '@/modules/contracts/hooks/use-approve-token';
+import { useTokenAllowance } from '@/modules/contracts/hooks/use-token-allowance';
 
 export type Web3SubmitStep =
 	| 'connect'
@@ -39,6 +39,7 @@ export interface UseWeb3SubmitButtonParams {
 }
 
 const CHAIN_NAMES: Record<number, string> = {
+	[mainnet.id]: 'Ethereum',
 	[sepolia.id]: 'Sepolia',
 };
 
@@ -54,8 +55,22 @@ export function useWeb3SubmitButton({
 }: UseWeb3SubmitButtonParams) {
 	const { open } = useAppKit();
 	const { address, isConnected } = useAppKitAccount();
-	const chainId = useChainId();
-	const { switchChainAsync } = useSwitchChain();
+	const walletChainId = useChainId();
+	const chainId = requiredChainId; // Target chain for contract calls
+	const { mutateAsync: switchChainAsync } = useSwitchChain();
+
+	// Force switch to required chain when wallet is on wrong network
+	useEffect(() => {
+		if (
+			isConnected &&
+			walletChainId !== undefined &&
+			walletChainId !== requiredChainId
+		) {
+			switchChainAsync({ chainId: requiredChainId }).catch(() => {
+				// User may reject - stay on switch_network step
+			});
+		}
+	}, [isConnected, walletChainId, requiredChainId, switchChainAsync]);
 
 	const hasSpender = !!allowanceConfig?.spender;
 
@@ -110,10 +125,11 @@ export function useWeb3SubmitButton({
 
 	const step: Web3SubmitStep = useMemo(() => {
 		if (!isConnected) return 'connect';
-		if (chainId !== requiredChainId) return 'switch_network';
+		if (walletChainId !== undefined && walletChainId !== requiredChainId)
+			return 'switch_network';
 		if (needsApproval) return 'approve';
 		return 'submit';
-	}, [isConnected, chainId, requiredChainId, needsApproval]);
+	}, [isConnected, walletChainId, requiredChainId, needsApproval]);
 
 	const label = useMemo(() => {
 		switch (step) {
