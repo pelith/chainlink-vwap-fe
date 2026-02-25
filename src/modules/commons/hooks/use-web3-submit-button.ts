@@ -5,12 +5,9 @@
 
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react';
 import { useCallback, useEffect, useMemo } from 'react';
-import {
-	useChainId,
-	useSwitchChain,
-	useWaitForTransactionReceipt,
-} from 'wagmi';
-import { mainnet, sepolia } from 'wagmi/chains';
+import { useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
+import { sepolia } from 'wagmi/chains';
+import { useWalletChainId } from '@/modules/commons/hooks/use-wallet-chain-id';
 import { useApproveToken } from '@/modules/contracts/hooks/use-approve-token';
 import { useTokenAllowance } from '@/modules/contracts/hooks/use-token-allowance';
 
@@ -39,7 +36,6 @@ export interface UseWeb3SubmitButtonParams {
 }
 
 const CHAIN_NAMES: Record<number, string> = {
-	[mainnet.id]: 'Ethereum',
 	[sepolia.id]: 'Sepolia',
 };
 
@@ -55,7 +51,7 @@ export function useWeb3SubmitButton({
 }: UseWeb3SubmitButtonParams) {
 	const { open } = useAppKit();
 	const { address, isConnected } = useAppKitAccount();
-	const walletChainId = useChainId();
+	const walletChainId = useWalletChainId();
 	const chainId = requiredChainId; // Target chain for contract calls
 	const { mutateAsync: switchChainAsync } = useSwitchChain();
 
@@ -63,7 +59,7 @@ export function useWeb3SubmitButton({
 	useEffect(() => {
 		if (
 			isConnected &&
-			walletChainId !== undefined &&
+			walletChainId != null &&
 			walletChainId !== requiredChainId
 		) {
 			switchChainAsync({ chainId: requiredChainId }).catch(() => {
@@ -97,7 +93,10 @@ export function useWeb3SubmitButton({
 		chainId,
 	});
 
-	const { isLoading: isApproveConfirming } = useWaitForTransactionReceipt({
+	const {
+		data: approveReceipt,
+		isLoading: isApproveConfirming,
+	} = useWaitForTransactionReceipt({
 		hash: approveHash,
 	});
 
@@ -116,8 +115,15 @@ export function useWeb3SubmitButton({
 
 	const handleApprove = useCallback(async () => {
 		await approveAsync();
-		await refetchAllowance();
-	}, [approveAsync, refetchAllowance]);
+		// Refetch happens in useEffect below after tx is confirmed
+	}, [approveAsync]);
+
+	// Refetch allowance after approve tx is confirmed (allowance updates on-chain only after confirmation)
+	useEffect(() => {
+		if (approveReceipt && approveHash) {
+			refetchAllowance();
+		}
+	}, [approveReceipt, approveHash, refetchAllowance]);
 
 	const handleSubmit = useCallback(async () => {
 		await onSubmit();
@@ -125,7 +131,8 @@ export function useWeb3SubmitButton({
 
 	const step: Web3SubmitStep = useMemo(() => {
 		if (!isConnected) return 'connect';
-		if (walletChainId !== undefined && walletChainId !== requiredChainId)
+		// When connected: undefined = still fetching; different chain = need switch
+		if (walletChainId === undefined || walletChainId !== requiredChainId)
 			return 'switch_network';
 		if (needsApproval) return 'approve';
 		return 'submit';
