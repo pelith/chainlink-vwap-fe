@@ -13,6 +13,10 @@ export interface Trade {
 	targetToken: string;
 	fillTime: Date;
 	endTime: Date;
+	deltaBps: number;
+	makerIsSellETH: boolean;
+	makerAmountIn: number;
+	takerDeposit: number;
 	settledTime?: Date;
 	finalVWAP?: number;
 	receivedAmount?: number;

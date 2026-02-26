@@ -1,9 +1,18 @@
-import { Clock, Hourglass } from 'lucide-react';
+import { Clock, Hourglass, Info } from 'lucide-react';
+import { useMemo } from 'react';
+import { useChainId } from 'wagmi';
 import type { Trade } from '@/modules/my-trades/types/my-trades.types';
+import { useVwapOraclePrice } from '@/modules/contracts/hooks/use-vwap-oracle-price';
+import { calculateSettlement } from '../utils/settlement-math';
 
 interface LockingTabProps {
 	trades: Trade[];
 }
+
+/** Formats a number to max 4 decimals and trims trailing zeros */
+const formatTrimmed = (n: number) => {
+	return Number.parseFloat(n.toFixed(4)).toString();
+};
 
 export function LockingTab({ trades }: LockingTabProps) {
 	if (trades.length === 0) {
@@ -30,11 +39,26 @@ export function LockingTab({ trades }: LockingTabProps) {
 }
 
 function LockingTradeCard({ trade }: { trade: Trade }) {
+	const chainId = useChainId();
 	const now = Date.now();
 	const totalDuration = trade.endTime.getTime() - trade.fillTime.getTime();
 	const elapsed = now - trade.fillTime.getTime();
 	const remaining = trade.endTime.getTime() - now;
 	const progress = Math.min((elapsed / totalDuration) * 100, 100);
+
+	const { vwapPrice, isLoading: isPriceLoading } = useVwapOraclePrice({ chainId });
+
+	const settlementData = useMemo(() => {
+		if (!vwapPrice) return null;
+		const priceWithDelta = vwapPrice * (1 + trade.deltaBps / 10000);
+		return calculateSettlement({
+			makerAmountIn: trade.makerAmountIn,
+			takerDeposit: trade.takerDeposit,
+			makerIsSellETH: trade.makerIsSellETH,
+			role: trade.role,
+			priceWithDelta,
+		});
+	}, [trade, vwapPrice]);
 
 	const formatTime = (ms: number) => {
 		const hours = Math.floor(ms / (1000 * 60 * 60));
@@ -59,7 +83,7 @@ function LockingTradeCard({ trade }: { trade: Trade }) {
 					</h3>
 					<span className='text-sm text-gray-500'>|</span>
 					<span className='text-sm text-gray-600 dark:text-gray-400'>
-						Role: {trade.role}
+						Role: {trade.role} ({trade.depositedToken} → {trade.targetToken})
 					</span>
 				</div>
 				<span className='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'>
@@ -82,10 +106,6 @@ function LockingTradeCard({ trade }: { trade: Trade }) {
 						className='h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500'
 						style={{ width: `${progress}%` }}
 					/>
-					<div
-						className='absolute top-0 h-full w-0.5 bg-blue-800'
-						style={{ left: `${progress}%` }}
-					/>
 				</div>
 				<div className='flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-1'>
 					<span>{formatDateTime(trade.fillTime)}</span>
@@ -98,26 +118,52 @@ function LockingTradeCard({ trade }: { trade: Trade }) {
 						Deposited
 					</p>
 					<p className='text-lg font-semibold text-gray-900 dark:text-white'>
-						{trade.depositedAmount.toLocaleString()} {trade.depositedToken}
+						{formatTrimmed(trade.depositedAmount)} {trade.depositedToken}
 					</p>
 				</div>
 				<div>
 					<p className='text-sm text-gray-600 dark:text-gray-400 mb-1'>
-						Target
+						Spread Offset (Delta)
 					</p>
 					<p className='text-lg font-semibold text-gray-900 dark:text-white'>
-						{trade.targetAmount} {trade.targetToken}
+						{trade.deltaBps > 0 ? '+' : ''}{trade.deltaBps} bps
 					</p>
 				</div>
 			</div>
-			<div className='bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4'>
-				<p className='text-sm font-medium text-amber-900 dark:text-amber-200 mb-1'>
-					Settlement Price
-				</p>
-				<p className='text-sm text-amber-700 dark:text-amber-300'>
-					Pending 12H VWAP calculation... Price will be finalized when the
-					locking period ends.
-				</p>
+
+			<div className='bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
+				{isPriceLoading ? (
+					<div className='flex items-center text-blue-700 dark:text-blue-300 text-sm'>
+						<Hourglass className='w-4 h-4 mr-2 animate-spin' />
+						Estimating current payout...
+					</div>
+				) : vwapPrice && settlementData ? (
+					<div className='flex justify-between items-center'>
+						<div>
+							<p className='text-xs font-medium text-blue-900 dark:text-blue-200 mb-1'>Current Est. Price</p>
+							<p className='text-lg font-bold text-blue-700 dark:text-blue-300'>{formatTrimmed(vwapPrice)} USDC</p>
+						</div>
+						<div className='text-right'>
+							<p className='text-xs font-medium text-blue-900 dark:text-blue-200 mb-1'>Est. Payout</p>
+							<p className='text-lg font-bold text-green-600 dark:text-green-400'>
+								{formatTrimmed(settlementData.payout)} {settlementData.payoutToken}
+							</p>
+							{settlementData.refund > 0 && (
+								<p className='text-[10px] text-blue-500'>+ {formatTrimmed(settlementData.refund)} refund</p>
+							)}
+						</div>
+					</div>
+				) : (
+					<div>
+						<p className='text-sm font-medium text-amber-900 dark:text-amber-200 mb-1 flex items-center'>
+							<Info className='w-4 h-4 mr-1' />
+							Pending Final 12H VWAP
+						</p>
+						<p className='text-xs text-amber-700 dark:text-amber-300'>
+							Price will be finalized when the locking period ends.
+						</p>
+					</div>
+				)}
 			</div>
 		</div>
 	);

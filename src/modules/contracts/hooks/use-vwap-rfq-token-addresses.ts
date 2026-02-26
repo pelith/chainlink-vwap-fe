@@ -1,5 +1,5 @@
 /**
- * Reads USDC and WETH token addresses from VWAPRFQSpot contract.
+ * Reads USDC, WETH token addresses and constants from VWAPRFQSpot contract.
  */
 
 import type { Address } from 'viem';
@@ -40,6 +40,41 @@ export function useVwapRfqTokenAddresses(chainId?: number) {
 		usdc: usdc as Address | undefined,
 		weth: weth as Address | undefined,
 		contractAddress,
+		isLoading: result.isLoading,
+		refetch: result.refetch,
+	};
+}
+
+export function useVwapRfqConstants(chainId?: number) {
+	const result = useReadContracts({
+		contracts: [
+			{
+				abi: VWAPRFQSpotAbi,
+				address: contractAddress!,
+				functionName: 'REFUND_GRACE',
+				args: [],
+				chainId,
+			},
+			{
+				abi: VWAPRFQSpotAbi,
+				address: contractAddress!,
+				functionName: 'VWAP_WINDOW',
+				args: [],
+				chainId,
+			},
+		] as const,
+		query: {
+			enabled: !!contractAddress && !!chainId,
+		},
+	});
+
+	const [refundGraceResult, vwapWindowResult] = result.data ?? [];
+	const refundGrace = refundGraceResult?.status === 'success' ? (refundGraceResult.result as bigint) : undefined;
+	const vwapWindow = vwapWindowResult?.status === 'success' ? (vwapWindowResult.result as bigint) : undefined;
+
+	return {
+		refundGrace: refundGrace ? Number(refundGrace) : undefined,
+		vwapWindow: vwapWindow ? Number(vwapWindow) : undefined,
 		isLoading: result.isLoading,
 		refetch: result.refetch,
 	};

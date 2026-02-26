@@ -1,11 +1,24 @@
 import { Calendar, TrendingUp } from 'lucide-react';
+import { useMemo } from 'react';
 import type { Trade } from '@/modules/my-trades/types/my-trades.types';
 
 interface HistoryTabProps {
 	trades: Trade[];
 }
 
+/** Formats a number to max 4 decimals and trims trailing zeros */
+const formatTrimmed = (n: number) => {
+	return Number.parseFloat(n.toFixed(4)).toString();
+};
+
 export function HistoryTab({ trades }: HistoryTabProps) {
+	// Optimized: Memoize summary stats to avoid re-filtering on every render
+	const stats = useMemo(() => ({
+		total: trades.length,
+		settled: trades.filter((t) => t.status === 'settled').length,
+		refunded: trades.filter((t) => t.status === 'refunded').length,
+	}), [trades]);
+
 	if (trades.length === 0) {
 		return (
 			<div className='p-12 text-center'>
@@ -30,7 +43,7 @@ export function HistoryTab({ trades }: HistoryTabProps) {
 								Total Trades
 							</p>
 							<p className='text-2xl font-semibold text-blue-900 dark:text-blue-100'>
-								{trades.length}
+								{stats.total}
 							</p>
 						</div>
 						<TrendingUp className='w-8 h-8 text-blue-500' />
@@ -43,7 +56,7 @@ export function HistoryTab({ trades }: HistoryTabProps) {
 								Successfully Settled
 							</p>
 							<p className='text-2xl font-semibold text-green-900 dark:text-green-100'>
-								{trades.filter((t) => t.status === 'settled').length}
+								{stats.settled}
 							</p>
 						</div>
 						<TrendingUp className='w-8 h-8 text-green-500' />
@@ -56,7 +69,7 @@ export function HistoryTab({ trades }: HistoryTabProps) {
 								Refunded
 							</p>
 							<p className='text-2xl font-semibold text-gray-900 dark:text-gray-100'>
-								{trades.filter((t) => t.status === 'refunded').length}
+								{stats.refunded}
 							</p>
 						</div>
 						<TrendingUp className='w-8 h-8 text-gray-500' />
@@ -113,18 +126,11 @@ function HistoryRow({ trade }: { trade: Trade }) {
 			hour: '2-digit',
 			minute: '2-digit',
 		});
-	const formatAmount = (amount: number, token: string) =>
-		token === 'USDC'
-			? amount.toLocaleString('en-US', {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2,
-				})
-			: amount.toFixed(4);
 
 	return (
 		<tr className='hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors'>
 			<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white'>
-				{trade.settledTime && formatDate(trade.settledTime)}
+				{trade.settledTime ? formatDate(trade.settledTime) : '-'}
 			</td>
 			<td className='px-6 py-4 whitespace-nowrap'>
 				<span className='text-sm font-medium text-blue-600 dark:text-blue-400'>
@@ -135,21 +141,21 @@ function HistoryRow({ trade }: { trade: Trade }) {
 				<span
 					className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${trade.role === 'Maker' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'}`}
 				>
-					{trade.role}
+					{trade.role} ({trade.depositedToken} → {trade.targetToken})
 				</span>
 			</td>
 			<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white'>
 				{trade.finalVWAP ? (
-					`${trade.finalVWAP.toLocaleString()} USDC`
+					`${formatTrimmed(trade.finalVWAP)} USDC`
 				) : (
-					<span className='text-gray-400'>N/A</span>
+					<span className='text-gray-400'>-</span>
 				)}
 			</td>
 			<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white'>
 				<div className='flex items-center space-x-1'>
 					<span className='text-red-600 dark:text-red-400'>-</span>
 					<span>
-						{formatAmount(trade.depositedAmount, trade.depositedToken)}{' '}
+						{formatTrimmed(trade.depositedAmount)}{' '}
 						{trade.depositedToken}
 					</span>
 				</div>
@@ -159,12 +165,12 @@ function HistoryRow({ trade }: { trade: Trade }) {
 					<div className='flex items-center space-x-1'>
 						<span>+</span>
 						<span>
-							{formatAmount(trade.receivedAmount, trade.targetToken)}{' '}
+							{formatTrimmed(trade.receivedAmount)}{' '}
 							{trade.targetToken}
 						</span>
 					</div>
 				) : (
-					<span className='text-gray-400'>N/A</span>
+					<span className='text-gray-400'>-</span>
 				)}
 			</td>
 			<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white'>
@@ -172,7 +178,7 @@ function HistoryRow({ trade }: { trade: Trade }) {
 					<div className='flex items-center space-x-1 text-blue-600 dark:text-blue-400'>
 						<span>+</span>
 						<span>
-							{formatAmount(trade.refundedAmount, trade.depositedToken)}{' '}
+							{formatTrimmed(trade.refundedAmount)}{' '}
 							{trade.depositedToken}
 						</span>
 					</div>

@@ -1,182 +1,98 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
 import { toast } from 'sonner';
 import { HistoryTab } from '@/modules/my-trades/components/history-tab';
 import { LockingTab } from '@/modules/my-trades/components/locking-tab';
 import { ReadyToSettleTab } from '@/modules/my-trades/components/ready-to-settle-tab';
-import type { Trade } from '@/modules/my-trades/types/my-trades.types';
+import { useTrades } from '@/api/use-trades-api';
+import { mapApiTradeToUITrade } from '../utils/trade-mapper';
+import { useSettleTrade, useRefundTrade } from '../hooks/use-trade-actions';
 
 export function MyTradesPage() {
+	const { address } = useAccount();
+	// Auto-refresh trades every 30 seconds
+	const { data: apiTrades, isLoading, isError, refetch } = useTrades({ 
+		address: address as string,
+	});
+
+	const { settle, data: settleHash, isPending: isSettleSubmitPending, error: settleError, reset: resetSettle } = useSettleTrade();
+	const { refund, data: refundHash, isPending: isRefundSubmitPending, error: refundError, reset: resetRefund } = useRefundTrade();
+
+	const { isLoading: isSettleConfirming, isSuccess: isSettleSuccess } = useWaitForTransactionReceipt({ hash: settleHash });
+	const { isLoading: isRefundConfirming, isSuccess: isRefundSuccess } = useWaitForTransactionReceipt({ hash: refundHash });
+
 	const [activeTab, setActiveTab] = useState<'locking' | 'settle' | 'history'>(
 		'locking',
 	);
-	const [trades, setTrades] = useState<Trade[]>([
-		{
-			id: '8821',
-			role: 'Taker',
-			status: 'locking',
-			depositedAmount: 30000,
-			depositedToken: 'USDC',
-			targetAmount: 10,
-			targetToken: 'WETH',
-			fillTime: new Date(Date.now() - 3 * 60 * 60 * 1000),
-			endTime: new Date(Date.now() + 9 * 60 * 60 * 1000),
-		},
-		{
-			id: '8820',
-			role: 'Maker',
-			status: 'locking',
-			depositedAmount: 5,
-			depositedToken: 'WETH',
-			targetAmount: 15000,
-			targetToken: 'USDC',
-			fillTime: new Date(Date.now() - 7 * 60 * 60 * 1000),
-			endTime: new Date(Date.now() + 5 * 60 * 60 * 1000),
-		},
-		{
-			id: '8819',
-			role: 'Taker',
-			status: 'ready_to_settle',
-			depositedAmount: 50000,
-			depositedToken: 'USDC',
-			targetAmount: 16,
-			targetToken: 'WETH',
-			fillTime: new Date(Date.now() - 13 * 60 * 60 * 1000),
-			endTime: new Date(Date.now() - 1 * 60 * 60 * 1000),
-			finalVWAP: 3045,
-		},
-		{
-			id: '8818',
-			role: 'Maker',
-			status: 'ready_to_settle',
-			depositedAmount: 8,
-			depositedToken: 'WETH',
-			targetAmount: 24000,
-			targetToken: 'USDC',
-			fillTime: new Date(Date.now() - 14 * 60 * 60 * 1000),
-			endTime: new Date(Date.now() - 2 * 60 * 60 * 1000),
-			finalVWAP: 3042,
-		},
-		{
-			id: '8817',
-			role: 'Taker',
-			status: 'expired_refundable',
-			depositedAmount: 25000,
-			depositedToken: 'USDC',
-			targetAmount: 8,
-			targetToken: 'WETH',
-			fillTime: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
-			endTime: new Date(
-				Date.now() - 7 * 24 * 60 * 60 * 1000 - 12 * 60 * 60 * 1000,
-			),
-		},
-		{
-			id: '8816',
-			role: 'Maker',
-			status: 'settled',
-			depositedAmount: 12,
-			depositedToken: 'WETH',
-			targetAmount: 36000,
-			targetToken: 'USDC',
-			fillTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-			endTime: new Date(
-				Date.now() - 2 * 24 * 60 * 60 * 1000 - 12 * 60 * 60 * 1000,
-			),
-			settledTime: new Date(
-				Date.now() - 2 * 24 * 60 * 60 * 1000 - 10 * 60 * 60 * 1000,
-			),
-			finalVWAP: 3038,
-			receivedAmount: 36456,
-			refundedAmount: 0,
-		},
-		{
-			id: '8815',
-			role: 'Taker',
-			status: 'settled',
-			depositedAmount: 40000,
-			depositedToken: 'USDC',
-			targetAmount: 13,
-			targetToken: 'WETH',
-			fillTime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-			endTime: new Date(
-				Date.now() - 4 * 24 * 60 * 60 * 1000 - 12 * 60 * 60 * 1000,
-			),
-			settledTime: new Date(
-				Date.now() - 4 * 24 * 60 * 60 * 1000 - 11 * 60 * 60 * 1000,
-			),
-			finalVWAP: 3048,
-			receivedAmount: 13,
-			refundedAmount: 350.76,
-		},
-		{
-			id: '8814',
-			role: 'Maker',
-			status: 'settled',
-			depositedAmount: 20,
-			depositedToken: 'WETH',
-			targetAmount: 60000,
-			targetToken: 'USDC',
-			fillTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-			endTime: new Date(
-				Date.now() - 6 * 24 * 60 * 60 * 1000 - 12 * 60 * 60 * 1000,
-			),
-			settledTime: new Date(
-				Date.now() - 6 * 24 * 60 * 60 * 1000 - 10 * 60 * 60 * 1000,
-			),
-			finalVWAP: 3035,
-			receivedAmount: 60700,
-			refundedAmount: 0,
-		},
-	]);
 
-	const lockingTrades = trades.filter((t) => t.status === 'locking');
-	const readyToSettleTrades = trades.filter(
-		(t) => t.status === 'ready_to_settle' || t.status === 'expired_refundable',
-	);
-	const historyTrades = trades.filter(
-		(t) => t.status === 'settled' || t.status === 'refunded',
-	);
+	const trades = useMemo(() => {
+		if (!apiTrades || !address) return [];
+		return apiTrades.map((t) => mapApiTradeToUITrade(t, address));
+	}, [apiTrades, address]);
 
-	const handleSettle = (tradeId: string) => {
-		setTrades(
-			trades.map((trade) => {
-				if (trade.id !== tradeId) return trade;
-				const vwap = trade.finalVWAP ?? 3045;
-				const received =
-					trade.role === 'Taker'
-						? trade.targetAmount
-						: trade.targetAmount * 1.02;
-				const refunded =
-					trade.role === 'Taker'
-						? Math.max(0, trade.depositedAmount - vwap * trade.targetAmount)
-						: 0;
-				return {
-					...trade,
-					status: 'settled' as const,
-					settledTime: new Date(),
-					receivedAmount: received,
-					refundedAmount: refunded,
-				};
-			}),
+	// Optimized: Memoize filtered lists to avoid re-calculating on every render
+	const { lockingTrades, readyToSettleTrades, historyTrades } = useMemo(() => ({
+		lockingTrades: trades.filter((t) => t.status === 'locking'),
+		readyToSettleTrades: trades.filter(
+			(t) => t.status === 'ready_to_settle' || t.status === 'expired_refundable',
+		),
+		historyTrades: trades.filter(
+			(t) => t.status === 'settled' || t.status === 'refunded',
+		),
+	}), [trades]);
+
+	// Refetch trades when a transaction is confirmed on-chain
+	useEffect(() => {
+		if (isSettleSuccess) {
+			toast.success('Trade settled successfully!');
+			refetch();
+			resetSettle();
+		}
+		if (isRefundSuccess) {
+			toast.success('Refund claimed successfully!');
+			refetch();
+			resetRefund();
+		}
+	}, [isSettleSuccess, isRefundSuccess, refetch, resetSettle, resetRefund]);
+
+	// Error handling
+	useEffect(() => {
+		if (settleError) toast.error(`Settlement failed: ${settleError.message}`);
+		if (refundError) toast.error(`Refund failed: ${refundError.message}`);
+	}, [settleError, refundError]);
+
+	// Optimized: Use useCallback to maintain stable function references
+	const handleSettle = useCallback((tradeId: string) => {
+		settle(tradeId);
+	}, [settle]);
+
+	const handleRefund = useCallback((tradeId: string) => {
+		refund(tradeId);
+	}, [refund]);
+
+	if (!address) {
+		return (
+			<div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center'>
+				<p className='text-gray-500 dark:text-gray-400'>Please connect your wallet to view your trades.</p>
+			</div>
 		);
-		toast.success('Trade settled successfully!');
-	};
+	}
 
-	const handleRefund = (tradeId: string) => {
-		setTrades(
-			trades.map((trade) =>
-				trade.id === tradeId
-					? {
-							...trade,
-							status: 'refunded' as const,
-							settledTime: new Date(),
-							receivedAmount: trade.depositedAmount,
-							refundedAmount: 0,
-						}
-					: trade,
-			),
+	if (isLoading && !apiTrades) {
+		return (
+			<div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center'>
+				<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600' />
+			</div>
 		);
-		toast.success('Refund claimed successfully!');
-	};
+	}
+
+	if (isError) {
+		return (
+			<div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center'>
+				<p className='text-red-500'>Failed to load trades. Please try again later.</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
@@ -211,7 +127,7 @@ export function MyTradesPage() {
 									: 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
 							}`}
 						>
-							Ready to Settle
+							Executable
 							{readyToSettleTrades.length > 0 && (
 								<span className='ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-xs'>
 									{readyToSettleTrades.length}
@@ -238,6 +154,8 @@ export function MyTradesPage() {
 							trades={readyToSettleTrades}
 							onSettle={handleSettle}
 							onRefund={handleRefund}
+							isSettlePending={isSettleSubmitPending || isSettleConfirming}
+							isRefundPending={isRefundSubmitPending || isRefundConfirming}
 						/>
 					)}
 					{activeTab === 'history' && <HistoryTab trades={historyTrades} />}

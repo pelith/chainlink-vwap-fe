@@ -18,7 +18,15 @@ const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS as Address | undefined;
 /** Price = (USDC per 1 ETH) * 1e6, display = price / 1e6 */
 const USDC_SCALE = 1e6;
 
-export function useVwapOraclePrice(chainId?: number) {
+export function useVwapOraclePrice(
+	config: {
+		startTime?: bigint;
+		endTime?: bigint;
+		chainId?: number;
+	} = {},
+) {
+	const { startTime: customStartTime, endTime: customEndTime, chainId } = config;
+
 	const configResult = useReadContracts({
 		contracts: [
 			{
@@ -51,21 +59,24 @@ export function useVwapOraclePrice(chainId?: number) {
 		vwapWindowResult?.status === 'success' ? vwapWindowResult.result : 43200n;
 	const vwapWindowSeconds = Number(vwapWindowRaw);
 
-	const { startTime, endTime } = useMemo(() => {
+	const { defaultStartTime, defaultEndTime } = useMemo(() => {
 		const now = new Date();
 		const endTimeDate = startOfHour(now);
 		const startTimeDate = subHours(endTimeDate, vwapWindowSeconds / 3600);
 		return {
-			startTime: BigInt(getUnixTime(startTimeDate)),
-			endTime: BigInt(getUnixTime(endTimeDate)),
+			defaultStartTime: BigInt(getUnixTime(startTimeDate)),
+			defaultEndTime: BigInt(getUnixTime(endTimeDate)),
 		};
 	}, [vwapWindowSeconds]);
+
+	const finalStartTime = customStartTime ?? defaultStartTime;
+	const finalEndTime = customEndTime ?? defaultEndTime;
 
 	const priceResult = useReadContract({
 		abi: IVWAPOracleAbi,
 		address: oracleAddress ?? '0x0000000000000000000000000000000000000000',
 		functionName: 'getPrice',
-		args: [startTime, endTime],
+		args: [finalStartTime, finalEndTime],
 		chainId,
 		query: {
 			enabled: !!oracleAddress && !!chainId,
