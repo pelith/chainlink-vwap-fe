@@ -50,13 +50,6 @@ function SettleTradeCard({
 	onRefund: (id: string) => void;
 }) {
 	const isRefundable = trade.status === 'expired_refundable';
-	const formatDateTime = (date: Date) =>
-		date.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit',
-		});
 	const estimatedReceived =
 		trade.role === 'Taker'
 			? trade.targetAmount

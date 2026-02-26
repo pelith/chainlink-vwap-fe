@@ -1,43 +1,80 @@
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import type { Order as ApiOrder } from '@/api/api.types';
+import { getOrder } from '@/api/orders.api';
 import { useOrders } from '@/api/use-orders-api';
 import { useModalActions } from '@/modules/commons/hooks/modal/use-modal-actions';
 import {
 	FillOrderModal,
 	FILL_ORDER_MODAL_KEY,
 } from '@/modules/marketplace/components/fill-order-modal';
+import { useFillOrder } from '@/modules/marketplace/hooks/use-fill-order';
 import { MarketList } from '@/modules/marketplace/components/market-list';
 import { StatsSection } from '@/modules/marketplace/components/stats-section';
 import type { Order } from '@/modules/marketplace/types/marketplace.types';
 import { mapOrderToMarketplaceOrder } from '@/modules/marketplace/utils/order-mapper';
 
+function getFillErrorMessage(err: unknown): string {
+	const msg = err instanceof Error ? err.message : String(err);
+	if (msg.includes('ExpiredOrder')) return 'Order has expired';
+	if (msg.includes('BadSignature')) return 'Invalid order signature';
+	if (msg.includes('OrderUsed')) return 'Order already filled or cancelled';
+	if (msg.includes('TakerTooSmall')) return 'Amount below minimum required';
+	if (msg.includes('DeltaInvalid')) return 'Invalid price delta';
+	if (msg.includes('user rejected')) return 'Transaction rejected by user';
+	return msg.length > 80 ? 'Transaction failed' : msg;
+}
+
 export function MarketplacePage() {
-	const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+	const queryClient = useQueryClient();
+	const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
 	const { onOpen, onClose } = useModalActions(FILL_ORDER_MODAL_KEY);
+	const { fillOrderAsync, isPending } = useFillOrder();
 
 	const {
-		data: orders,
+		data: apiOrders,
 		error: ordersError,
 		isError: isOrdersError,
 		isLoading: isOrdersLoading,
-	} = useOrders(
-		{ status: 'active' },
-		{ select: (data) => data.map(mapOrderToMarketplaceOrder) },
+	} = useOrders({ status: 'active' });
+
+	const displayOrders = useMemo(
+		() => (apiOrders ?? []).map(mapOrderToMarketplaceOrder),
+		[apiOrders],
 	);
 
-	const handleFillClick = (order: Order) => {
-		setSelectedOrder(order);
-		onOpen();
-	};
+	const handleFillClick = useCallback(
+		async (displayOrder: Order) => {
+			let apiOrder = apiOrders?.find((o) => o.order_hash === displayOrder.id);
+			if (!apiOrder) return;
+			if (!apiOrder.signature) {
+				apiOrder = await getOrder(displayOrder.id);
+			}
+			setSelectedOrder(apiOrder);
+			onOpen();
+		},
+		[apiOrders, onOpen],
+	);
 
-	const handleConfirmFill = (_amount: string) => {
-		onClose();
-		setSelectedOrder(null);
-		toast.success('Trade initiated! Funds locked for 12h settlement.', {
-			duration: 5000,
-		});
-	};
+	const handleConfirmFill = useCallback(
+		async (amount: string) => {
+			if (!selectedOrder) return;
+			try {
+				await fillOrderAsync(selectedOrder, amount);
+				queryClient.invalidateQueries({ queryKey: ['orders'] });
+				onClose();
+				setSelectedOrder(null);
+				toast.success('Trade initiated! Funds locked for 12h settlement.', {
+					duration: 5000,
+				});
+			} catch (err) {
+				toast.error(getFillErrorMessage(err));
+			}
+		},
+		[selectedOrder, fillOrderAsync, queryClient, onClose],
+	);
 
 	return (
 		<div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
@@ -61,21 +98,22 @@ export function MarketplacePage() {
 						<p className='text-gray-500 dark:text-gray-400'>Loading orders…</p>
 					</div>
 				)}
-				{!isOrdersError && !isOrdersLoading && (orders ?? []).length === 0 && (
+				{!isOrdersError && !isOrdersLoading && displayOrders.length === 0 && (
 					<div className='text-center py-12'>
 						<p className='text-gray-500 dark:text-gray-400 text-lg'>
 							No available orders
 						</p>
 					</div>
 				)}
-				{!isOrdersError && !isOrdersLoading && (orders ?? []).length > 0 && (
-					<MarketList orders={orders ?? []} onFillClick={handleFillClick} />
+				{!isOrdersError && !isOrdersLoading && displayOrders.length > 0 && (
+					<MarketList orders={displayOrders} onFillClick={handleFillClick} />
 				)}
 			</main>
 			<FillOrderModal
 				order={selectedOrder}
 				onConfirm={handleConfirmFill}
 				onCloseCallback={() => setSelectedOrder(null)}
+				isSubmitPending={isPending}
 			/>
 		</div>
 	);

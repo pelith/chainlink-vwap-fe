@@ -13,6 +13,7 @@ export interface Order {
 	delta_bps: number;
 	salt: string;
 	deadline: number;
+	signature?: string;
 	status: OrderStatus;
 	created_at: string;
 	filled_at: string | null;

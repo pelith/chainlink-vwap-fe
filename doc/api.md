@@ -35,7 +35,7 @@ POST /v1/orders
 | delta_bps | integer | ✓ | 價格偏移基點，10000 + delta_bps 須 > 0 |
 | salt | string | ✓ | 隨機鹽值 |
 | deadline | integer | ✓ | 到期時間（Unix timestamp，秒） |
-| signature | string | ✓ | EIP-712 簽名，hex 編碼（可含或不含 0x 前綴） |
+| signature | string | ✓ | EIP-712 簽名，hex 編碼（可含或不含 0x 前綴），格式詳見 [doc/eip712.md](eip712.md) |
 
 **Response**
 
@@ -55,6 +55,7 @@ POST /v1/orders
 | delta_bps | integer | 價格偏移基點 |
 | salt | string | 鹽值 |
 | deadline | integer | 到期時間戳 |
+| signature | string | EIP-712 簽名（hex，含 0x 前綴），供 Taker 呼叫 contract.fill() |
 | status | string | `active` \| `filled` \| `cancelled` \| `expired` |
 | created_at | string | ISO 8601 時間 |
 | filled_at | string \| null | 成交時間（若有） |

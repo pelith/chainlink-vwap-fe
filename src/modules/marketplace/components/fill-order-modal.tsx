@@ -3,6 +3,7 @@ import { AlertCircle, Calendar, Clock, Info } from 'lucide-react';
 import { useState } from 'react';
 import { parseUnits } from 'viem';
 import { sepolia } from 'wagmi/chains';
+import type { Order as ApiOrder } from '@/api/api.types';
 import {
 	Dialog,
 	DialogContent,
@@ -16,37 +17,41 @@ import { useModalRegister } from '@/modules/commons/hooks/modal/use-modal-regist
 import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
-import type { Order } from '@/modules/marketplace/types/marketplace.types';
+import { mapOrderToMarketplaceOrder } from '@/modules/marketplace/utils/order-mapper';
 
 const MODAL_KEY = 'fill-order';
 const USDC_DECIMALS = 6;
 const WETH_DECIMALS = 18;
 
 interface FillOrderModalProps {
-	order: Order | null;
-	onConfirm: (amount: string) => void;
+	order: ApiOrder | null;
+	onConfirm: (amount: string) => void | Promise<void>;
 	onCloseCallback?: () => void;
+	isSubmitPending?: boolean;
 }
 
 /** Form body that depends on `order`. Only mounted when `order` is set; avoids undefined access. */
 interface FillOrderFormContentProps {
-	order: Order;
+	apiOrder: ApiOrder;
 	depositAmount: string;
 	setDepositAmount: (v: string) => void;
-	onConfirm: (amount: string) => void;
+	onConfirm: (amount: string) => void | Promise<void>;
+	isSubmitPending?: boolean;
 }
 
 function FillOrderFormContent({
-	order,
+	apiOrder,
 	depositAmount,
 	setDepositAmount,
 	onConfirm: onConfirmProp,
+	isSubmitPending = false,
 }: FillOrderFormContentProps) {
 	const chainId = sepolia.id;
 	const { address } = useAppKitAccount();
 	const { usdc, weth } = useVwapRfqTokenAddresses(chainId);
 
-	const isSellWeth = order.direction === 'SELL_WETH';
+	const displayOrder = mapOrderToMarketplaceOrder(apiOrder);
+	const isSellWeth = displayOrder.direction === 'SELL_WETH';
 	const depositToken = isSellWeth ? 'USDC' : 'WETH';
 	const tokenAddress = isSellWeth ? usdc : weth;
 	const decimals = isSellWeth ? USDC_DECIMALS : WETH_DECIMALS;
@@ -61,7 +66,7 @@ function FillOrderFormContent({
 
 	const depositAmountBn = parseToBigNumber(depositAmount);
 	const balanceBn = parseToBigNumber(balanceStr ?? '0');
-	const minAmountBn = parseToBigNumber(order.minAmountOut);
+	const minAmountBn = parseToBigNumber(displayOrder.minAmountOut);
 
 	const hasMinError = depositAmount !== '' && depositAmountBn.lt(minAmountBn);
 	const insufficientBalance =
@@ -91,6 +96,8 @@ function FillOrderFormContent({
 		onSubmit: () => onConfirmProp(depositAmount),
 		allowanceConfig,
 		submitLabel: 'Confirm Fill',
+		submitPendingLabel: 'Confirming…',
+		isSubmitPending,
 		formDisabled: hasError || !depositAmount || depositAmountBn.lt(minAmountBn),
 	});
 
@@ -111,7 +118,7 @@ function FillOrderFormContent({
 			<DialogHeader className='space-y-0'>
 				<div className='flex items-center justify-between mb-6'>
 					<DialogTitle className='text-2xl font-semibold text-gray-900 dark:text-white'>
-						Fill Order #{shortenHash(order.id)}
+						Fill Order #{shortenHash(displayOrder.id)}
 					</DialogTitle>
 				</div>
 			</DialogHeader>
@@ -131,7 +138,7 @@ function FillOrderFormContent({
 					</span>
 				</div>
 				<p className='text-lg font-semibold text-gray-900 dark:text-white'>
-					{order.amount} {order.token}
+					{displayOrder.amount} {displayOrder.token}
 				</p>
 			</div>
 			<div className='mb-2'>
@@ -147,7 +154,7 @@ function FillOrderFormContent({
 						type='number'
 						value={depositAmount}
 						onChange={(e) => setDepositAmount(e.target.value)}
-						placeholder={`Min: ${formatMinAmount(order.minAmountOut)}`}
+						placeholder={`Min: ${formatMinAmount(displayOrder.minAmountOut)}`}
 						className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:bg-gray-900/50 dark:text-white dark:placeholder-gray-400 ${
 							hasError
 								? 'border-red-500 bg-red-50 dark:bg-red-900/20'
@@ -163,7 +170,7 @@ function FillOrderFormContent({
 				<div className='mb-4 flex items-start space-x-2 text-red-600 dark:text-red-400 text-sm'>
 					<AlertCircle className='w-4 h-4 shrink-0 mt-0.5' />
 					<span>
-						Amount must be at least {formatMinAmount(order.minAmountOut)}{' '}
+						Amount must be at least {formatMinAmount(displayOrder.minAmountOut)}{' '}
 						{depositToken}
 					</span>
 				</div>
@@ -185,7 +192,7 @@ function FillOrderFormContent({
 			</p>
 			{!hasError && depositAmount === '' && (
 				<p className='mb-4 text-sm text-gray-500 dark:text-gray-400'>
-					Minimum deposit: {formatMinAmount(order.minAmountOut)} {depositToken}
+					Minimum deposit: {formatMinAmount(displayOrder.minAmountOut)} {depositToken}
 				</p>
 			)}
 			<div className='mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3'>
@@ -228,7 +235,7 @@ function FillOrderFormContent({
 				className='w-full px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'
 			>
 				{isPending ? (
-					<span className='flex items-center gap-2'>
+					<span className='flex items-center justify-center gap-2'>
 						<span className='inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
 						{label}
 					</span>
@@ -244,6 +251,7 @@ export function FillOrderModal({
 	order,
 	onConfirm,
 	onCloseCallback,
+	isSubmitPending = false,
 }: FillOrderModalProps) {
 	const { isOpen, setOpen } = useModalRegister(MODAL_KEY);
 	const [depositAmount, setDepositAmount] = useState('');
@@ -264,10 +272,11 @@ export function FillOrderModal({
 			>
 				{order ? (
 					<FillOrderFormContent
-						order={order}
+						apiOrder={order}
 						depositAmount={depositAmount}
 						setDepositAmount={setDepositAmount}
 						onConfirm={onConfirm}
+						isSubmitPending={isSubmitPending}
 					/>
 				) : null}
 			</DialogContent>
