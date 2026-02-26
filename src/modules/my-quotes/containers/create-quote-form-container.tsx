@@ -90,6 +90,7 @@ export function CreateQuoteFormContainer({
 
 	const handleSubmitAction = useCallback(async () => {
 		const valid = await form.trigger();
+		console.log('valid', valid);
 		if (!valid) return;
 		const data = form.getValues();
 		await onSubmit(data);

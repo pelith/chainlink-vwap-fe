@@ -32,6 +32,7 @@ export function mapOrderToMarketplaceOrder(order: ApiOrder): Order {
 
 	return {
 		id: order.order_hash,
+		maker: order.maker,
 		direction,
 		amount: Number.parseFloat(amountInFormatted),
 		token: direction === 'SELL_WETH' ? 'WETH' : 'USDC',

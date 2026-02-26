@@ -1,11 +1,53 @@
+import { formatUnits } from 'viem';
+import { sepolia } from 'wagmi/chains';
 import { AlertTriangle, Shield, TrendingUp } from 'lucide-react';
+import { useAppKitAccount } from '@reown/appkit/react';
+import { env } from '@/env';
+import { formatCommonNumber } from '@/lib/bignumber';
+import { useTokenAllowance } from '@/modules/contracts/hooks/use-token-allowance';
+import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
+import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
 import type { MakerOrder } from '@/modules/my-quotes/types/my-quotes.types';
+
+const WETH_DECIMALS = 18;
+const USDC_DECIMALS = 6;
 
 interface RiskMonitorProps {
 	orders: MakerOrder[];
 }
 
 export function RiskMonitor({ orders }: RiskMonitorProps) {
+	const chainId = sepolia.id;
+	const { address } = useAppKitAccount();
+	const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS;
+	const { weth: wethAddress, usdc: usdcAddress } =
+		useVwapRfqTokenAddresses(chainId);
+
+	const wethBalanceData = useTokenInfoAndBalance(
+		address ?? '',
+		wethAddress ?? '',
+		chainId,
+	);
+	const usdcBalanceData = useTokenInfoAndBalance(
+		address ?? '',
+		usdcAddress ?? '',
+		chainId,
+	);
+
+	const { allowance: allowanceWethRaw } = useTokenAllowance(
+		address,
+		wethAddress,
+		contractAddress,
+		chainId,
+	);
+	const { allowance: allowanceUsdcRaw } = useTokenAllowance(
+		address,
+		usdcAddress,
+		contractAddress,
+		chainId,
+	);
+
+	// Exposure: sum of open order amount / token allowance (智能合約授權額度)
 	const activeOrders = orders.filter((o) => o.status === 'active');
 	const totalExposureWETH = activeOrders
 		.filter((o) => o.direction === 'SELL_WETH')
@@ -13,15 +55,57 @@ export function RiskMonitor({ orders }: RiskMonitorProps) {
 	const totalExposureUSDC = activeOrders
 		.filter((o) => o.direction === 'SELL_USDC')
 		.reduce((sum, o) => sum + o.amount, 0);
-	const allowanceWETH = 50.0;
-	const allowanceUSDC = 100000;
-	const walletBalanceWETH = 45.5;
-	const walletBalanceUSDC = 125000;
-	const wethExposurePercent = (totalExposureWETH / allowanceWETH) * 100;
-	const usdcExposurePercent = (totalExposureUSDC / allowanceUSDC) * 100;
 
-	const getZoneColor = (percent: number) => {
-		if (percent >= 90)
+	const allowanceWETH =
+		address && allowanceWethRaw != null
+			? Number(formatUnits(allowanceWethRaw, WETH_DECIMALS))
+			: null;
+	const allowanceUSDC =
+		address && allowanceUsdcRaw != null
+			? Number(formatUnits(allowanceUsdcRaw, USDC_DECIMALS))
+			: null;
+
+	const walletBalanceWETH = wethBalanceData?.balance ?? null;
+	const walletBalanceUSDC = usdcBalanceData?.balance ?? null;
+
+	const wethExposurePercent =
+		allowanceWETH != null && allowanceWETH > 0
+			? (totalExposureWETH / allowanceWETH) * 100
+			: 0;
+	const usdcExposurePercent =
+		allowanceUSDC != null && allowanceUSDC > 0
+			? (totalExposureUSDC / allowanceUSDC) * 100
+			: 0;
+
+	const walletWethNum =
+		walletBalanceWETH != null ? Number(walletBalanceWETH) : null;
+	const walletUsdcNum =
+		walletBalanceUSDC != null ? Number(walletBalanceUSDC) : null;
+
+	const wethWalletPercent =
+		walletWethNum != null && walletWethNum > 0
+			? (totalExposureWETH / walletWethNum) * 100
+			: null;
+	const usdcWalletPercent =
+		walletUsdcNum != null && walletUsdcNum > 0
+			? (totalExposureUSDC / walletUsdcNum) * 100
+			: null;
+	const wethWalletSufficient =
+		walletWethNum != null && walletWethNum >= totalExposureWETH;
+	const usdcWalletSufficient =
+		walletUsdcNum != null && walletUsdcNum >= totalExposureUSDC;
+
+	// When wallet has sufficient balance but allowance is low, show Warning instead of Critical (user can fix by increasing allowance)
+	const getZoneColor = (percent: number, walletSufficient: boolean) => {
+		const wouldBeCritical = percent >= 90;
+		if (wouldBeCritical && walletSufficient)
+			return {
+				bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+				border: 'border-yellow-300 dark:border-yellow-800',
+				text: 'text-yellow-700 dark:text-yellow-400',
+				bar: 'bg-yellow-500',
+			};
+		if (wouldBeCritical)
 			return {
 				bg: 'bg-red-100 dark:bg-red-900/30',
 				border: 'border-red-300 dark:border-red-800',
@@ -43,8 +127,12 @@ export function RiskMonitor({ orders }: RiskMonitorProps) {
 		};
 	};
 
-	const wethColors = getZoneColor(wethExposurePercent);
-	const usdcColors = getZoneColor(usdcExposurePercent);
+	const wethColors = getZoneColor(wethExposurePercent, wethWalletSufficient);
+	const usdcColors = getZoneColor(usdcExposurePercent, usdcWalletSufficient);
+	const wethIsCritical =
+		wethExposurePercent >= 90 && !wethWalletSufficient;
+	const usdcIsCritical =
+		usdcExposurePercent >= 90 && !usdcWalletSufficient;
 	const needsAllowanceIncrease =
 		wethExposurePercent >= 60 || usdcExposurePercent >= 60;
 
@@ -77,7 +165,13 @@ export function RiskMonitor({ orders }: RiskMonitorProps) {
 								WETH Exposure
 							</h3>
 							<p className='text-2xl font-semibold text-gray-900 dark:text-white mt-1'>
-								{totalExposureWETH.toFixed(2)} / {allowanceWETH.toFixed(2)}
+								{totalExposureWETH.toFixed(2)} /{' '}
+								{allowanceWETH != null
+									? allowanceWETH.toFixed(2)
+									: '—'}
+							</p>
+							<p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+								Open orders / Allowance
 							</p>
 						</div>
 						{wethExposurePercent >= 60 && (
@@ -92,15 +186,39 @@ export function RiskMonitor({ orders }: RiskMonitorProps) {
 					</div>
 					<div className='flex items-center justify-between mt-2'>
 						<span className='text-xs text-gray-600 dark:text-gray-400'>
-							Wallet: {walletBalanceWETH.toFixed(2)} WETH
+							Wallet:{' '}
+							{wethBalanceData?.isLoading
+								? 'Loading…'
+								: walletBalanceWETH != null
+									? `${formatCommonNumber(walletBalanceWETH)} WETH`
+									: '—'}
 						</span>
-						<span className={`text-sm font-medium ${wethColors.text}`}>
-							{wethExposurePercent.toFixed(1)}%
-						</span>
+						<div className='text-xs space-x-3'>
+							<span
+								className={wethExposurePercent >= 60 ? wethColors.text : ''}
+								title='Exposure / Allowance'
+							>
+								Allowance {wethExposurePercent.toFixed(1)}%
+							</span>
+							<span className='text-gray-600 dark:text-gray-400' title='Exposure / Wallet'>
+								Wallet{' '}
+								{wethWalletPercent != null
+									? `${wethWalletPercent.toFixed(1)}%`
+									: '—'}
+							</span>
+						</div>
 					</div>
 					{wethExposurePercent >= 90 && (
-						<p className='text-xs text-red-700 dark:text-red-400 mt-2'>
-							⚠️ Critical: Risk of failed fills
+						<p
+							className={`text-xs mt-2 ${
+								wethIsCritical
+									? 'text-red-700 dark:text-red-400'
+									: 'text-yellow-700 dark:text-yellow-400'
+							}`}
+						>
+							{wethIsCritical
+								? '⚠️ Critical: Risk of failed fills'
+								: 'Increase allowance to enable fills'}
 						</p>
 					)}
 				</div>
@@ -114,7 +232,12 @@ export function RiskMonitor({ orders }: RiskMonitorProps) {
 							</h3>
 							<p className='text-2xl font-semibold text-gray-900 dark:text-white mt-1'>
 								{totalExposureUSDC.toLocaleString()} /{' '}
-								{allowanceUSDC.toLocaleString()}
+								{allowanceUSDC != null
+									? allowanceUSDC.toLocaleString()
+									: '—'}
+							</p>
+							<p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+								Open orders / Allowance
 							</p>
 						</div>
 						{usdcExposurePercent >= 60 && (
@@ -129,15 +252,39 @@ export function RiskMonitor({ orders }: RiskMonitorProps) {
 					</div>
 					<div className='flex items-center justify-between mt-2'>
 						<span className='text-xs text-gray-600 dark:text-gray-400'>
-							Wallet: {walletBalanceUSDC.toLocaleString()} USDC
+							Wallet:{' '}
+							{usdcBalanceData?.isLoading
+								? 'Loading…'
+								: walletBalanceUSDC != null
+									? `${formatCommonNumber(walletBalanceUSDC)} USDC`
+									: '—'}
 						</span>
-						<span className={`text-sm font-medium ${usdcColors.text}`}>
-							{usdcExposurePercent.toFixed(1)}%
-						</span>
+						<div className='text-xs space-x-3'>
+							<span
+								className={usdcExposurePercent >= 60 ? usdcColors.text : ''}
+								title='Exposure / Allowance'
+							>
+								Allowance {usdcExposurePercent.toFixed(1)}%
+							</span>
+							<span className='text-gray-600 dark:text-gray-400' title='Exposure / Wallet'>
+								Wallet{' '}
+								{usdcWalletPercent != null
+									? `${usdcWalletPercent.toFixed(1)}%`
+									: '—'}
+							</span>
+						</div>
 					</div>
 					{usdcExposurePercent >= 90 && (
-						<p className='text-xs text-red-700 dark:text-red-400 mt-2'>
-							⚠️ Critical: Risk of failed fills
+						<p
+							className={`text-xs mt-2 ${
+								usdcIsCritical
+									? 'text-red-700 dark:text-red-400'
+									: 'text-yellow-700 dark:text-yellow-400'
+							}`}
+						>
+							{usdcIsCritical
+								? '⚠️ Critical: Risk of failed fills'
+								: 'Increase allowance to enable fills'}
 						</p>
 					)}
 				</div>

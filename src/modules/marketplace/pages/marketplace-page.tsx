@@ -1,5 +1,6 @@
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { Order as ApiOrder } from '@/api/api.types';
@@ -28,6 +29,8 @@ export function MarketplacePage() {
 		error: ordersError,
 		isError: isOrdersError,
 		isLoading: isOrdersLoading,
+		refetch,
+		isFetching,
 	} = useOrders({ status: 'active' });
 
 	const displayOrders = useMemo(
@@ -90,13 +93,30 @@ export function MarketplacePage() {
 				)}
 				{!isOrdersError && !isOrdersLoading && displayOrders.length === 0 && (
 					<div className='text-center py-12'>
-						<p className='text-gray-500 dark:text-gray-400 text-lg'>
+						<p className='text-gray-500 dark:text-gray-400 text-lg mb-4'>
 							No available orders
 						</p>
+						<Button
+							variant='outline'
+							size='sm'
+							onClick={() => refetch()}
+							disabled={isFetching}
+							className='gap-2'
+						>
+							<RefreshCw
+								className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`}
+							/>
+							Refresh
+						</Button>
 					</div>
 				)}
 				{!isOrdersError && !isOrdersLoading && displayOrders.length > 0 && (
-					<MarketList orders={displayOrders} onFillClick={handleFillClick} />
+					<MarketList
+						orders={displayOrders}
+						onFillClick={handleFillClick}
+						onRefresh={() => refetch()}
+						isRefreshing={isFetching}
+					/>
 				)}
 			</main>
 			<FillOrderModal

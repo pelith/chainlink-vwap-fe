@@ -6,6 +6,7 @@ const h = (hours: number, minutes: number) => now + hours * 3600 + minutes * 60;
 export const mockOrders: Order[] = [
 	{
 		id: '1234',
+		maker: '0x0000000000000000000000000000000000000001',
 		direction: 'SELL_WETH',
 		amount: 10.0,
 		token: 'WETH',
@@ -15,6 +16,7 @@ export const mockOrders: Order[] = [
 	},
 	{
 		id: '1235',
+		maker: '0x0000000000000000000000000000000000000002',
 		direction: 'SELL_USDC',
 		amount: 50000,
 		token: 'USDC',
@@ -24,6 +26,7 @@ export const mockOrders: Order[] = [
 	},
 	{
 		id: '1236',
+		maker: '0x0000000000000000000000000000000000000003',
 		direction: 'SELL_WETH',
 		amount: 25.0,
 		token: 'WETH',
@@ -33,6 +36,7 @@ export const mockOrders: Order[] = [
 	},
 	{
 		id: '1237',
+		maker: '0x0000000000000000000000000000000000000004',
 		direction: 'SELL_USDC',
 		amount: 100000,
 		token: 'USDC',
@@ -42,6 +46,7 @@ export const mockOrders: Order[] = [
 	},
 	{
 		id: '1238',
+		maker: '0x0000000000000000000000000000000000000005',
 		direction: 'SELL_WETH',
 		amount: 5.5,
 		token: 'WETH',
@@ -51,6 +56,7 @@ export const mockOrders: Order[] = [
 	},
 	{
 		id: '1239',
+		maker: '0x0000000000000000000000000000000000000006',
 		direction: 'SELL_USDC',
 		amount: 75000,
 		token: 'USDC',

@@ -1,6 +1,8 @@
+import { useAppKitAccount } from '@reown/appkit/react';
 import { Clock, HelpCircle } from 'lucide-react';
 import usdcIcon from '@/assets/2654d0ea7067f6da4d09a20d5d807a46ea193b8e.png';
 import wethIcon from '@/assets/c68666dc78ff5ce7cd2de448ff99cf9fff49e11b.png';
+import { Badge } from '@/components/ui/badge';
 import { formatCommonNumber } from '@/lib/bignumber';
 import { shortenHash } from '@/lib/shorten-hash';
 import type { Order } from '@/modules/marketplace/types/marketplace.types';
@@ -12,6 +14,11 @@ interface QuoteListItemProps {
 }
 
 export function QuoteListItem({ order, onFillClick }: QuoteListItemProps) {
+	const { address } = useAppKitAccount();
+	const isOwnOrder =
+		!!address &&
+		order.maker.toLowerCase() === address.toLowerCase();
+
 	const deltaPercent = (order.delta / 100).toFixed(2);
 	const deltaSign = order.delta >= 0 ? '+' : '';
 	const pricingColor =
@@ -37,7 +44,12 @@ export function QuoteListItem({ order, onFillClick }: QuoteListItemProps) {
 		>
 			<div className='flex items-center gap-6'>
 				<div className='flex-shrink-0 w-24'>
-					<p className='text-xs text-gray-500 dark:text-slate-400 mb-1'>Sell</p>
+					<div className='flex items-center gap-2 mb-1'>
+						<p className='text-xs text-gray-500 dark:text-slate-400'>Sell</p>
+						{isOwnOrder && (
+							<Badge variant='secondary'>Your order</Badge>
+						)}
+					</div>
 					<div className='flex items-center gap-2'>
 						<img src={tokenIcon} alt={order.token} className='w-6 h-6' />
 						<span className='text-lg font-bold text-gray-900 dark:text-slate-100'>
