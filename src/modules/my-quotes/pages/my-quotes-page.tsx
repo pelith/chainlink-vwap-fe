@@ -1,15 +1,20 @@
 import { useAppKitAccount } from '@reown/appkit/react';
 import { toast } from 'sonner';
 import { useOrders } from '@/api/use-orders-api';
-import { CreateQuoteFormContainer } from '@/modules/my-quotes/containers/create-quote-form-container';
+import { useModalActions } from '@/modules/commons/hooks/modal/use-modal-actions';
+import {
+	ALLOWANCE_CONFIG_MODAL_KEY,
+	AllowanceConfigModal,
+} from '@/modules/my-quotes/components/allowance-config-modal';
 import { OrderManagement } from '@/modules/my-quotes/components/order-management';
 import { RiskMonitor } from '@/modules/my-quotes/components/risk-monitor';
+import { CreateQuoteFormContainer } from '@/modules/my-quotes/containers/create-quote-form-container';
 import { useCancelOrderOnChain } from '@/modules/my-quotes/hooks/use-cancel-order-on-chain';
 import { useCreateOrderFlow } from '@/modules/my-quotes/hooks/use-create-order-flow';
 import { mapOrderToMakerOrder } from '@/modules/my-quotes/utils/order-mapper';
-
 export function MyQuotesPage() {
 	const { address, isConnected } = useAppKitAccount();
+	const { onOpen: onOpenAllowanceConfig } = useModalActions(ALLOWANCE_CONFIG_MODAL_KEY);
 	const {
 		data: ordersData,
 		error: ordersError,
@@ -69,7 +74,11 @@ export function MyQuotesPage() {
 						</p>
 					</div>
 				)}
-				<RiskMonitor orders={makerOrders} />
+				<AllowanceConfigModal orders={makerOrders} />
+				<RiskMonitor
+					orders={makerOrders}
+					onIncreaseAllowanceClick={onOpenAllowanceConfig}
+				/>
 				<div className='grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8'>
 					<div className='lg:col-span-1'>
 						<CreateQuoteFormContainer

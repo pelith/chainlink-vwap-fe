@@ -124,7 +124,6 @@ export function useWeb3SubmitButton({
 	}, [approveReceipt, approveHash, refetchAllowance]);
 
 	const handleSubmit = useCallback(async () => {
-		console.log('handleSubmit')
 		await onSubmit();
 	}, [onSubmit]);
 
@@ -164,7 +163,6 @@ export function useWeb3SubmitButton({
 	]);
 
 	const onClick = useCallback(async () => {
-		console.log('onclick')
 		if (formDisabled && step === 'submit') return;
 
 		switch (step) {

@@ -14,9 +14,10 @@ const USDC_DECIMALS = 6;
 
 interface RiskMonitorProps {
 	orders: MakerOrder[];
+	onIncreaseAllowanceClick?: () => void;
 }
 
-export function RiskMonitor({ orders }: RiskMonitorProps) {
+export function RiskMonitor({ orders, onIncreaseAllowanceClick }: RiskMonitorProps) {
 	const chainId = sepolia.id;
 	const { address } = useAppKitAccount();
 	const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS;
@@ -148,6 +149,7 @@ export function RiskMonitor({ orders }: RiskMonitorProps) {
 				{needsAllowanceIncrease && (
 					<button
 						type='button'
+						onClick={onIncreaseAllowanceClick}
 						className='flex items-center space-x-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium'
 					>
 						<TrendingUp className='w-4 h-4' />
