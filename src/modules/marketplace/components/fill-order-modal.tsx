@@ -1,9 +1,10 @@
 import { useAppKitAccount } from '@reown/appkit/react';
 import { AlertCircle, Calendar, Clock, Info } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { parseUnits } from 'viem';
 import { sepolia } from 'wagmi/chains';
 import type { Order as ApiOrder } from '@/api/api.types';
+import { Button } from '@/components/ui/button';
 import {
 	Dialog,
 	DialogContent,
@@ -15,6 +16,7 @@ import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
 import { shortenHash } from '@/lib/shorten-hash';
 import { useModalRegister } from '@/modules/commons/hooks/modal/use-modal-register';
 import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
+import { useChainlinkEthPrice } from '@/modules/contracts/hooks/use-chainlink-eth-price';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
 import { useVerifyOrderHash } from '@/modules/marketplace/hooks/use-verify-order-hash';
@@ -59,6 +61,8 @@ function FillOrderFormContent({
 	const tokenAddress = isSellWeth ? usdc : weth;
 	const decimals = isSellWeth ? USDC_DECIMALS : WETH_DECIMALS;
 
+	const { price, isLoading: priceLoading } =
+		useChainlinkEthPrice(chainId);
 	const balanceData = useTokenInfoAndBalance(
 		address ?? '',
 		tokenAddress ?? '',
@@ -70,6 +74,31 @@ function FillOrderFormContent({
 	const depositAmountBn = parseToBigNumber(depositAmount);
 	const balanceBn = parseToBigNumber(balanceStr ?? '0');
 	const minAmountBn = parseToBigNumber(displayOrder.minAmountOut);
+
+	const handleMinimumDeposit = useCallback(() => {
+		setDepositAmount(String(displayOrder.minAmountOut));
+	}, [displayOrder.minAmountOut, setDepositAmount]);
+
+	const handleFillToMatchCurrentPrice = useCallback(() => {
+		if (price === undefined) return;
+		const amountBn = parseToBigNumber(displayOrder.amount);
+		const marketPriceBn = parseToBigNumber(price);
+		const receiveDecimals = isSellWeth ? USDC_DECIMALS : WETH_DECIMALS;
+		const calculated = isSellWeth
+			? amountBn.times(marketPriceBn).toFixed(receiveDecimals)
+			: amountBn.div(marketPriceBn).toFixed(receiveDecimals);
+		const calculatedBn = parseToBigNumber(calculated);
+		const final = calculatedBn.gte(minAmountBn)
+			? calculated
+			: minAmountBn.toFixed(receiveDecimals);
+		setDepositAmount(final);
+	}, [
+		price,
+		displayOrder.amount,
+		isSellWeth,
+		minAmountBn,
+		setDepositAmount,
+	]);
 
 	const hasMinError = depositAmount !== '' && depositAmountBn.lt(minAmountBn);
 	const insufficientBalance =
@@ -177,6 +206,25 @@ function FillOrderFormContent({
 					<span className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium'>
 						{depositToken}
 					</span>
+				</div>
+				<div className='mt-2 flex flex-wrap gap-2'>
+					<Button
+						type='button'
+						variant='outline'
+						size='sm'
+						onClick={handleMinimumDeposit}
+					>
+						Minimum Deposit
+					</Button>
+					<Button
+						type='button'
+						variant='outline'
+						size='sm'
+						onClick={handleFillToMatchCurrentPrice}
+						disabled={price === undefined || priceLoading}
+					>
+						{priceLoading ? 'Loading price…' : 'Fill to Match Current Price'}
+					</Button>
 				</div>
 			</div>
 			{hasMinError && (

@@ -48,6 +48,7 @@ export function CreateQuoteFormContainer({
 	const form = useForm<CreateQuoteFormValues>({
 		resolver: zodResolver(createQuoteFormSchema),
 		defaultValues: DEFAULT_VALUES,
+		mode: 'onTouched',
 	});
 
 	const direction = form.watch('direction');
@@ -90,7 +91,6 @@ export function CreateQuoteFormContainer({
 
 	const handleSubmitAction = useCallback(async () => {
 		const valid = await form.trigger();
-		console.log('valid', valid);
 		if (!valid) return;
 		const data = form.getValues();
 		await onSubmit(data);
@@ -155,7 +155,6 @@ export function CreateQuoteFormContainer({
 			: 'Auto-calculate based on market price';
 
 	const submitDisabled = disabled || (isDisabled && step === 'submit');
-	console.log('submitDisabled', disabled, isDisabled, step);
 
 	return (
 		<CreateQuoteForm

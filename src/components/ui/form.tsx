@@ -45,8 +45,8 @@ const FormField = <
 const useFormField = () => {
 	const fieldContext = React.useContext(FormFieldContext);
 	const itemContext = React.useContext(FormItemContext);
-	const { getFieldState } = useFormContext();
-	const formState = useFormState({ name: fieldContext.name });
+	const { control, getFieldState } = useFormContext();
+	const formState = useFormState({ control, name: fieldContext.name });
 	const fieldState = getFieldState(fieldContext.name, formState);
 
 	if (!fieldContext) {
@@ -138,7 +138,13 @@ function FormDescription({ className, ...props }: React.ComponentProps<'p'>) {
 
 function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
 	const { error, formMessageId } = useFormField();
-	const body = error ? String(error?.message ?? '') : props.children;
+	const body = error
+		? String(
+				(typeof error === 'object' && error !== null && 'message' in error
+					? (error as { message?: string }).message
+					: String(error)) ?? '',
+			)
+		: props.children;
 
 	if (!body) {
 		return null;
