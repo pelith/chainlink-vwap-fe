@@ -1,0 +1,103 @@
+/**
+ * Presentational layer: pure UI for ETH to WETH deposit form.
+ * Receives display values and callbacks from container.
+ */
+
+export interface DepositFormProps {
+	amount: string;
+	onAmountChange: (value: string) => void;
+	ethBalanceDisplay: string;
+	wethBalanceDisplay: string;
+	maxAmount: string;
+	submitLabel: string;
+	onSubmitClick: () => void;
+	submitDisabled: boolean;
+	submitIsPending: boolean;
+	errorMessage: string | null;
+}
+
+export function DepositForm({
+	amount,
+	onAmountChange,
+	ethBalanceDisplay,
+	wethBalanceDisplay,
+	maxAmount,
+	submitLabel,
+	onSubmitClick,
+	submitDisabled,
+	submitIsPending,
+	errorMessage,
+}: DepositFormProps) {
+	return (
+		<div className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 sticky top-8 max-w-md'>
+			<h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
+				Wrap ETH to WETH
+			</h2>
+			{errorMessage ? (
+				<div
+					role='alert'
+					className='mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm'
+				>
+					{errorMessage}
+				</div>
+			) : null}
+			<div className='space-y-6'>
+				<div>
+					<label
+						htmlFor='deposit-eth-amount'
+						className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+					>
+						Amount
+					</label>
+					<div className='relative'>
+						<input
+							id='deposit-eth-amount'
+							type='number'
+							value={amount}
+							onChange={(e) => onAmountChange(e.target.value)}
+							placeholder='0.00'
+							step='any'
+							min='0'
+							className='w-full px-4 py-3 pr-24 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none dark:bg-gray-700 dark:text-white dark:placeholder-gray-400'
+						/>
+						<div className='absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2'>
+							<button
+								type='button'
+								onClick={() => onAmountChange(maxAmount)}
+								className='text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 px-2 py-1'
+							>
+								Max
+							</button>
+							<span className='text-gray-500 dark:text-gray-400 font-medium'>
+								ETH
+							</span>
+						</div>
+					</div>
+					<p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
+						Balance: {ethBalanceDisplay} ETH
+					</p>
+				</div>
+				<div className='p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg'>
+					<p className='text-sm text-gray-600 dark:text-gray-400'>
+						WETH balance: {wethBalanceDisplay} WETH
+					</p>
+				</div>
+				<button
+					type='button'
+					onClick={onSubmitClick}
+					disabled={submitDisabled}
+					className='w-full py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed'
+				>
+					{submitIsPending ? (
+						<span className='flex items-center justify-center gap-2'>
+							<span className='inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
+							{submitLabel}
+						</span>
+					) : (
+						submitLabel
+					)}
+				</button>
+			</div>
+		</div>
+	);
+}

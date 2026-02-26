@@ -248,10 +248,10 @@ export function CreateQuoteForm({
 						className='w-full py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed'
 					>
 						{submitIsPending ? (
-							<>
+							<span className='flex items-center justify-center gap-2'>
 								<span className='inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
 								{submitButtonLabel}
-							</>
+							</span>
 						) : (
 							submitButtonLabel
 						)}

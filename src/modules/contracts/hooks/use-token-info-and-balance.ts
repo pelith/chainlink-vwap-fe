@@ -59,10 +59,12 @@ export function useTokenInfoAndBalance(
 		? {
 				...nativeResult.data,
 				isLoading: nativeResult.isLoading,
+				refetch: nativeResult.refetch,
 			}
 		: {
 				...erc20Result.data,
 				isLoading: erc20Result.isLoading,
+				refetch: erc20Result.refetch,
 			};
 }
 
