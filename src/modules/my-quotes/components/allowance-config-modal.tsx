@@ -2,7 +2,6 @@ import { useAppKitAccount } from '@reown/appkit/react';
 import { Info, Shield, Wallet } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { formatUnits, parseUnits } from 'viem';
-import { sepolia } from 'wagmi/chains';
 import { toast } from 'sonner';
 import {
 	Dialog,
@@ -15,8 +14,9 @@ import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { env } from '@/env';
 import { formatCommonNumber } from '@/lib/bignumber';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { useModalRegister } from '@/modules/commons/hooks/modal/use-modal-register';
-import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
+import { Web3SubmitButton } from '@/modules/commons/components/web3-submit-button';
 import { useTokenAllowance } from '@/modules/contracts/hooks/use-token-allowance';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
@@ -61,7 +61,7 @@ function TokenAllowanceForm({
 	totalExposure,
 	onDone,
 }: TokenAllowanceFormProps) {
-	const chainId = sepolia.id;
+	const chainId = TARGET_CHAIN_ID;
 	const { address } = useAppKitAccount();
 	const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS;
 
@@ -145,27 +145,6 @@ function TokenAllowanceForm({
 	}, [contractAddress, tokenAddress, amountRaw, tokenSymbol]);
 
 	const hasError = amountNum < minAmount || amountNum > maxAmount;
-
-	const { label, onClick, isPending, disabled } = useWeb3SubmitButton({
-		requiredChainId: sepolia.id,
-		onSubmit: () => {
-			toast.success(`Allowance updated for ${tokenSymbol}`);
-			refetchAllowance();
-			onDone?.();
-		},
-		allowanceConfig,
-		submitLabel: 'Done',
-		submitPendingLabel: 'Done',
-		formDisabled: hasError || amountNum <= 0,
-	});
-
-	const handleClick = useCallback(async () => {
-		try {
-			await onClick();
-		} catch (err) {
-			toast.error(err instanceof Error ? err.message : String(err));
-		}
-	}, [onClick]);
 
 	const tokenBadgeClass =
 		token === 'WETH'
@@ -263,28 +242,26 @@ function TokenAllowanceForm({
 				</p>
 			)}
 
-			<button
-				type='button'
-				onClick={handleClick}
-				disabled={disabled}
-				className='w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 active:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed'
-			>
-				{isPending ? (
-					<span className='flex items-center justify-center gap-2'>
-						<span className='size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
-						{label}
-					</span>
-				) : (
-					label
-				)}
-			</button>
+			<Web3SubmitButton
+				onSubmit={() => {
+					toast.success(`Allowance updated for ${tokenSymbol}`);
+					refetchAllowance();
+					onDone?.();
+				}}
+				allowanceConfig={allowanceConfig}
+				submitLabel='Done'
+				submitPendingLabel='Done'
+				formDisabled={hasError || amountNum <= 0}
+				requiredChainId={chainId}
+				className='w-full h-12 rounded-xl'
+			/>
 		</div>
 	);
 }
 
 export function AllowanceConfigModal({ orders }: AllowanceConfigModalProps) {
 	const { isOpen, setOpen } = useModalRegister(MODAL_KEY);
-	const chainId = sepolia.id;
+	const chainId = TARGET_CHAIN_ID;
 	const { weth: wethAddress, usdc: usdcAddress } =
 		useVwapRfqTokenAddresses(chainId);
 

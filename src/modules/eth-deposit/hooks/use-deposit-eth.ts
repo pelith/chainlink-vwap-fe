@@ -5,17 +5,16 @@
 import type { Address } from 'viem';
 import { useWriteContract } from 'wagmi';
 import { WETH9DepositAbi } from '@/modules/contracts/constants/abis/WETH9';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 
 export interface UseDepositEthParams {
 	wethAddress: string | undefined;
 	amountRaw: bigint;
-	chainId?: number;
 }
 
 export function useDepositEth({
 	wethAddress,
 	amountRaw,
-	chainId,
 }: UseDepositEthParams) {
 	const {
 		mutate,
@@ -28,13 +27,14 @@ export function useDepositEth({
 
 	const deposit = () => {
 		if (!wethAddress || amountRaw <= 0n) return;
+
 		mutate({
 			abi: WETH9DepositAbi,
 			address: wethAddress as Address,
 			functionName: 'deposit',
 			args: [],
 			value: amountRaw,
-			chainId,
+			chainId: TARGET_CHAIN_ID,
 		});
 	};
 
@@ -45,13 +45,14 @@ export function useDepositEth({
 		if (amountRaw <= 0n) {
 			throw new Error('Amount must be greater than 0');
 		}
+
 		return mutateAsync({
 			abi: WETH9DepositAbi,
 			address: wethAddress as Address,
 			functionName: 'deposit',
 			args: [],
 			value: amountRaw,
-			chainId,
+			chainId: TARGET_CHAIN_ID,
 		});
 	};
 

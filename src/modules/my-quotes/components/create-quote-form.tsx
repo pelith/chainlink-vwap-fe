@@ -13,7 +13,9 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form';
+import { Web3SubmitButton } from '@/modules/commons/components/web3-submit-button';
 import type { CreateQuoteFormValues } from '@/modules/my-quotes/schemas/create-quote-form-schema';
+import type { AllowanceConfig } from '@/modules/commons/hooks/use-web3-submit-button';
 
 export interface CreateQuoteFormProps {
 	form: UseFormReturn<CreateQuoteFormValues>;
@@ -25,10 +27,10 @@ export interface CreateQuoteFormProps {
 	autoCalculateButtonLabel: string;
 	autoCalculateDisabled: boolean;
 	onAutoCalculate: () => void;
-	submitButtonLabel: string;
-	onSubmitClick: () => void;
-	submitDisabled: boolean;
-	submitIsPending: boolean;
+	onSubmit: () => void;
+	isSubmitPending: boolean;
+	allowanceConfig: AllowanceConfig | null;
+	requiredChainId: number;
 }
 
 export function CreateQuoteForm({
@@ -41,10 +43,10 @@ export function CreateQuoteForm({
 	autoCalculateButtonLabel,
 	autoCalculateDisabled,
 	onAutoCalculate,
-	submitButtonLabel,
-	onSubmitClick,
-	submitDisabled,
-	submitIsPending,
+	onSubmit,
+	isSubmitPending,
+	allowanceConfig,
+	requiredChainId,
 }: CreateQuoteFormProps) {
 	const hasErrors = Object.keys(form.formState.errors).length > 0;
 	const formErrorMessage = hasErrors
@@ -241,21 +243,15 @@ export function CreateQuoteForm({
 							</FormItem>
 						)}
 					/>
-					<button
-						type='button'
-						onClick={onSubmitClick}
-						disabled={submitDisabled}
-						className='w-full py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed'
-					>
-						{submitIsPending ? (
-							<span className='flex items-center justify-center gap-2'>
-								<span className='inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
-								{submitButtonLabel}
-							</span>
-						) : (
-							submitButtonLabel
-						)}
-					</button>
+					<Web3SubmitButton
+						onSubmit={onSubmit}
+						submitLabel='Sign & Create Order'
+						allowanceConfig={allowanceConfig}
+						requiredChainId={requiredChainId}
+						isSubmitPending={isSubmitPending}
+						formDisabled={!form.formState.isValid}
+						className='w-full py-6'
+					/>
 				</form>
 			</Form>
 		</div>

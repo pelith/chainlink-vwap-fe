@@ -1,9 +1,9 @@
 import { formatUnits } from 'viem';
-import { sepolia } from 'wagmi/chains';
 import { AlertTriangle, Shield, TrendingUp } from 'lucide-react';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { env } from '@/env';
 import { formatCommonNumber } from '@/lib/bignumber';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { useTokenAllowance } from '@/modules/contracts/hooks/use-token-allowance';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
@@ -18,7 +18,7 @@ interface RiskMonitorProps {
 }
 
 export function RiskMonitor({ orders, onIncreaseAllowanceClick }: RiskMonitorProps) {
-	const chainId = sepolia.id;
+	const chainId = TARGET_CHAIN_ID;
 	const { address } = useAppKitAccount();
 	const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS;
 	const { weth: wethAddress, usdc: usdcAddress } =

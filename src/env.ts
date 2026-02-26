@@ -19,6 +19,7 @@ export const env = createEnv({
 		VITE_VWAP_CONTRACT_ADDRESS: z.string().optional(),
 		VITE_VWAP_ORACLE_CONTRACT_ADDRESS: z.string().optional(),
 		VITE_CHAINLINK_ETH_USD_FEED_ADDRESS: z.string().optional(),
+		VITE_TARGET_CHAIN_ID: z.string().transform(Number).default(11155111),
 	},
 
 	/**

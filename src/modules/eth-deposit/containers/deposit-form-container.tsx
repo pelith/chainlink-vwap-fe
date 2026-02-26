@@ -8,8 +8,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { formatUnits, isAddress, parseUnits } from 'viem';
 import { useBalance, useWaitForTransactionReceipt } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
 import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
@@ -26,7 +26,7 @@ function toAmountRaw(amountStr: string): bigint {
 }
 
 export function DepositFormContainer() {
-	const chainId = sepolia.id;
+	const chainId = TARGET_CHAIN_ID;
 	const { address } = useAppKitAccount();
 	const [amount, setAmount] = useState('');
 

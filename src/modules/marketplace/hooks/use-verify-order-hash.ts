@@ -6,9 +6,9 @@
 
 import type { Address } from 'viem';
 import { useReadContract } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
 import type { Order as ApiOrder } from '@/api/api.types';
 import { env } from '@/env';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 import {
 	buildOrderStruct,
@@ -16,7 +16,7 @@ import {
 	orderHashesMatch,
 } from '@/modules/marketplace/utils/fill-order-params';
 
-const CHAIN_ID = sepolia.id;
+const CHAIN_ID = TARGET_CHAIN_ID;
 
 export interface VerifyOrderHashResult {
 	/** Contract's hashOrder(order) result */

@@ -7,9 +7,9 @@ import { useAppKitAccount } from '@reown/appkit/react';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { useWalletClient } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
 import { useCreateOrder } from '@/api/use-orders-api';
 import { env } from '@/env';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { signOrder } from '@/modules/contracts/utils/order-signing';
 import {
 	buildCreateOrderBody,
@@ -21,7 +21,6 @@ export type CreateOrderPhase = 'idle' | 'signing' | 'submitting';
 
 export function useCreateOrderFlow() {
 	const { address } = useAppKitAccount();
-	const chainId = sepolia.id;
 	const { data: walletClient } = useWalletClient();
 	const { mutateAsync: createOrderMutate } = useCreateOrder();
 	const [phase, setPhase] = useState<CreateOrderPhase>('idle');
@@ -61,7 +60,7 @@ export function useCreateOrderFlow() {
 					address as `0x${string}`,
 					orderMessage,
 					contractAddress as `0x${string}`,
-					chainId,
+					TARGET_CHAIN_ID,
 				);
 
 				setPhase('submitting');
@@ -76,7 +75,7 @@ export function useCreateOrderFlow() {
 				setPhase('idle');
 			}
 		},
-		[address, walletClient, chainId, createOrderMutate],
+		[address, walletClient, createOrderMutate],
 	);
 
 	const isPending = phase !== 'idle';

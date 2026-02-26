@@ -6,14 +6,14 @@
 import { useAppKitAccount } from '@reown/appkit/react';
 import type { Address } from 'viem';
 import { usePublicClient, useWriteContract } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
 import type { Order as ApiOrder } from '@/api/api.types';
 import { env } from '@/env';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 import { buildFillOrderArgs } from '@/modules/marketplace/utils/fill-order-params';
 import { parseFillError } from '@/modules/marketplace/utils/parse-fill-error';
 
-const CHAIN_ID = sepolia.id;
+const CHAIN_ID = TARGET_CHAIN_ID;
 
 export function useFillOrder() {
 	const { address } = useAppKitAccount();

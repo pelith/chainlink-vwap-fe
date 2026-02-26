@@ -9,10 +9,9 @@ import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { parseUnits } from 'viem';
-import { sepolia } from 'wagmi/chains';
 import { env } from '@/env';
 import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
-import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { useChainlinkEthPrice } from '@/modules/contracts/hooks/use-chainlink-eth-price';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
@@ -43,7 +42,7 @@ export function CreateQuoteFormContainer({
 	phase,
 	isDisabled,
 }: CreateQuoteFormContainerProps) {
-	const chainId = sepolia.id;
+	const chainId = TARGET_CHAIN_ID;
 	const { address } = useAppKitAccount();
 	const form = useForm<CreateQuoteFormValues>({
 		resolver: zodResolver(createQuoteFormSchema),
@@ -97,21 +96,6 @@ export function CreateQuoteFormContainer({
 		form.reset(DEFAULT_VALUES);
 	}, [form, onSubmit]);
 
-	const { step, label, onClick, isPending, disabled } = useWeb3SubmitButton({
-		requiredChainId: sepolia.id,
-		onSubmit: handleSubmitAction,
-		allowanceConfig,
-		submitLabel: 'Sign & Create Order',
-		submitPendingLabel:
-			phase === 'signing'
-				? 'Waiting for signature…'
-				: phase === 'submitting'
-					? 'Creating order…'
-					: undefined,
-		formDisabled: !form.formState.isValid,
-		isSubmitPending: phase !== 'idle',
-	});
-
 	const deltaPercent = delta
 		? (Number.parseFloat(delta) / 100).toFixed(2)
 		: '0.00';
@@ -154,8 +138,6 @@ export function CreateQuoteFormContainer({
 			? 'Price unavailable'
 			: 'Auto-calculate based on market price';
 
-	const submitDisabled = disabled || (isDisabled && step === 'submit');
-
 	return (
 		<CreateQuoteForm
 			form={form}
@@ -167,10 +149,10 @@ export function CreateQuoteFormContainer({
 			autoCalculateButtonLabel={autoCalculateButtonLabel}
 			autoCalculateDisabled={price === undefined}
 			onAutoCalculate={handleAutoCalculate}
-			submitButtonLabel={label}
-			onSubmitClick={onClick}
-			submitDisabled={submitDisabled}
-			submitIsPending={isPending}
+			onSubmit={handleSubmitAction}
+			isSubmitPending={phase !== 'idle'}
+			allowanceConfig={allowanceConfig}
+			requiredChainId={chainId}
 		/>
 	);
 }

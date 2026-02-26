@@ -1,12 +1,8 @@
-/**
- * VWAP RFQ Settlement and Refund hooks.
- * Calls settle(tradeId) or refund(tradeId) on the VWAPRFQSpot contract.
- */
-
 import type { Address } from 'viem';
 import { useWriteContract } from 'wagmi';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 import { env } from '@/env';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 
 export function useSettleTrade() {
 	const {
@@ -22,11 +18,13 @@ export function useSettleTrade() {
 
 	const settle = (tradeId: string) => {
 		if (!vwapAddress || !tradeId) return;
+
 		mutate({
 			abi: VWAPRFQSpotAbi,
 			address: vwapAddress as Address,
 			functionName: 'settle',
 			args: [tradeId as Address],
+			chainId: TARGET_CHAIN_ID,
 		});
 	};
 
@@ -39,6 +37,7 @@ export function useSettleTrade() {
 			address: vwapAddress as Address,
 			functionName: 'settle',
 			args: [tradeId as Address],
+			chainId: TARGET_CHAIN_ID,
 		});
 	};
 
@@ -71,6 +70,7 @@ export function useRefundTrade() {
 			address: vwapAddress as Address,
 			functionName: 'refund',
 			args: [tradeId as Address],
+			chainId: TARGET_CHAIN_ID,
 		});
 	};
 
@@ -83,6 +83,7 @@ export function useRefundTrade() {
 			address: vwapAddress as Address,
 			functionName: 'refund',
 			args: [tradeId as Address],
+			chainId: TARGET_CHAIN_ID,
 		});
 	};
 
@@ -95,3 +96,4 @@ export function useRefundTrade() {
 		reset,
 	};
 }
+

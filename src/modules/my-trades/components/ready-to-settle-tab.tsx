@@ -1,6 +1,8 @@
-import { AlertTriangle, CheckCircle, RefreshCw, Loader2, Info } from 'lucide-react';
+import { AlertTriangle, CheckCircle, RefreshCw, Loader2, Info, Clock } from 'lucide-react';
 import { useMemo } from 'react';
 import { useChainId } from 'wagmi';
+import { Web3SubmitButton } from '@/modules/commons/components/web3-submit-button';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import type { Trade } from '@/modules/my-trades/types/my-trades.types';
 import { useVwapOraclePrice } from '@/modules/contracts/hooks/use-vwap-oracle-price';
 import { useVwapRfqConstants } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
@@ -258,19 +260,14 @@ function SettleTradeCard({
 			<div className='flex space-x-4'>
 				{isRefundable ? (
 					<>
-						<button
-							type='button'
-							onClick={() => onRefund(trade.id)}
-							disabled={isRefundPending}
-							className='flex-1 flex items-center justify-center space-x-2 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'
-						>
-							{isRefundPending ? (
-								<Loader2 className='w-5 h-5 animate-spin' />
-							) : (
-								<RefreshCw className='w-5 h-5' />
-							)}
-							<span>{isRefundPending ? 'Confirming...' : 'Claim Refund'}</span>
-						</button>
+						<Web3SubmitButton
+							onSubmit={() => onRefund(trade.id)}
+							isSubmitPending={isRefundPending}
+							submitLabel='Claim Refund'
+							submitPendingLabel='Confirming...'
+							requiredChainId={TARGET_CHAIN_ID}
+							className='flex-1 py-3 bg-orange-600 text-white hover:bg-orange-700'
+						/>
 						<button
 							type='button'
 							disabled
@@ -281,31 +278,19 @@ function SettleTradeCard({
 					</>
 				) : (
 					<>
-						<button
-							type='button'
-							onClick={() => onSettle(trade.id)}
-							disabled={isSettlePending || isWaitingForOracle}
-							className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-lg transition-colors font-medium text-lg ${
+						<Web3SubmitButton
+							onSubmit={() => onSettle(trade.id)}
+							isSubmitPending={isSettlePending}
+							formDisabled={isWaitingForOracle}
+							submitLabel={isWaitingForOracle ? 'Waiting for Price' : 'Settle Trade'}
+							submitPendingLabel='Confirming...'
+							requiredChainId={TARGET_CHAIN_ID}
+							className={`flex-1 py-3 rounded-lg transition-colors font-medium text-lg ${
 								isWaitingForOracle
 									? 'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
 									: 'bg-green-600 text-white hover:bg-green-700'
-							} disabled:opacity-50`}
-						>
-							{isSettlePending ? (
-								<Loader2 className='w-5 h-5 animate-spin' />
-							) : isWaitingForOracle ? (
-								<Clock className='w-5 h-5' />
-							) : (
-								<CheckCircle className='w-5 h-5' />
-							)}
-							<span>
-								{isSettlePending
-									? 'Confirming...'
-									: isWaitingForOracle
-										? 'Waiting for Price'
-										: 'Settle Trade'}
-							</span>
-						</button>
+							}`}
+						/>
 						<button
 							type='button'
 							disabled

@@ -6,7 +6,8 @@
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
+import { mainnet, sepolia } from 'wagmi/chains';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { useWalletChainId } from '@/modules/commons/hooks/use-wallet-chain-id';
 import { useApproveToken } from '@/modules/contracts/hooks/use-approve-token';
 import { useTokenAllowance } from '@/modules/contracts/hooks/use-token-allowance';
@@ -37,10 +38,11 @@ export interface UseWeb3SubmitButtonParams {
 
 const CHAIN_NAMES: Record<number, string> = {
 	[sepolia.id]: 'Sepolia',
+	[mainnet.id]: 'Mainnet',
 };
 
 export function useWeb3SubmitButton({
-	requiredChainId = sepolia.id,
+	requiredChainId = TARGET_CHAIN_ID,
 	onSubmit,
 	allowanceConfig,
 	submitLabel,

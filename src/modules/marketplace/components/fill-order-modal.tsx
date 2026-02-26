@@ -2,7 +2,6 @@ import { useAppKitAccount } from '@reown/appkit/react';
 import { AlertCircle, Calendar, Clock, Info } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { parseUnits } from 'viem';
-import { sepolia } from 'wagmi/chains';
 import type { Order as ApiOrder } from '@/api/api.types';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,9 +12,10 @@ import {
 } from '@/components/ui/dialog';
 import { env } from '@/env';
 import { formatCommonNumber, parseToBigNumber } from '@/lib/bignumber';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { shortenHash } from '@/lib/shorten-hash';
 import { useModalRegister } from '@/modules/commons/hooks/modal/use-modal-register';
-import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
+import { Web3SubmitButton } from '@/modules/commons/components/web3-submit-button';
 import { useChainlinkEthPrice } from '@/modules/contracts/hooks/use-chainlink-eth-price';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
@@ -49,7 +49,7 @@ function FillOrderFormContent({
 	onConfirm: onConfirmProp,
 	isSubmitPending = false,
 }: FillOrderFormContentProps) {
-	const chainId = sepolia.id;
+	const chainId = TARGET_CHAIN_ID;
 	const { address } = useAppKitAccount();
 	const { usdc, weth } = useVwapRfqTokenAddresses(chainId);
 	const { matches, diagnosis, isLoading: isVerifying } =
@@ -122,16 +122,6 @@ function FillOrderFormContent({
 			return null;
 		}
 	})();
-
-	const { label, onClick, isPending, disabled } = useWeb3SubmitButton({
-		requiredChainId: sepolia.id,
-		onSubmit: () => onConfirmProp(depositAmount),
-		allowanceConfig,
-		submitLabel: 'Confirm Fill',
-		submitPendingLabel: 'Confirming…',
-		isSubmitPending,
-		formDisabled: hasError || !depositAmount || depositAmountBn.lt(minAmountBn),
-	});
 
 	const formatMinAmount = (amount: number) => formatCommonNumber(amount);
 
@@ -289,21 +279,16 @@ function FillOrderFormContent({
 					</div>
 				</div>
 			</div>
-			<button
-				type='button'
-				onClick={onClick}
-				disabled={disabled}
-				className='w-full px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'
-			>
-				{isPending ? (
-					<span className='flex items-center justify-center gap-2'>
-						<span className='inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
-						{label}
-					</span>
-				) : (
-					label
-				)}
-			</button>
+			<Web3SubmitButton
+				onSubmit={() => onConfirmProp(depositAmount)}
+				allowanceConfig={allowanceConfig}
+				submitLabel='Confirm Fill'
+				submitPendingLabel='Confirming…'
+				isSubmitPending={isSubmitPending}
+				formDisabled={hasError || !depositAmount || depositAmountBn.lt(minAmountBn)}
+				requiredChainId={chainId}
+				className='w-full py-6'
+			/>
 		</div>
 	);
 }

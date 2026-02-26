@@ -6,12 +6,12 @@
 import type { Address } from 'viem';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWriteContract } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
 import { cancelOrder } from '@/api/orders.api';
 import { env } from '@/env';
+import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 
-const CHAIN_ID = sepolia.id;
+const CHAIN_ID = TARGET_CHAIN_ID;
 
 function toOrderHashBytes32(hash: string): `0x${string}` {
 	const trimmed = hash.trim();
