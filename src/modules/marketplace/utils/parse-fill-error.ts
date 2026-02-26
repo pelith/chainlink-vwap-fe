@@ -8,7 +8,8 @@ import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 const ERROR_MESSAGES: Record<string, string> = {
 	BadSignature:
 		'Signature verification failed. The order may have been signed with a different chain or contract address.',
-	ECDSAInvalidSignature: 'Invalid ECDSA signature format.',
+	ECDSAInvalidSignature:
+		'Signature recovery failed. Verify: (1) Order hash matches API order_hash, (2) Backend chainId and verifyingContract match the deployed contract, (3) Signature v is 27 or 28.',
 	ECDSAInvalidSignatureLength: 'Signature has invalid length (expected 65 bytes).',
 	ECDSAInvalidSignatureS: 'Invalid signature: s value out of range.',
 	ExpiredOrder: 'This order has expired (past deadline).',
