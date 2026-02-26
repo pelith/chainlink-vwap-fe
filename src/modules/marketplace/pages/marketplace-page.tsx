@@ -14,18 +14,8 @@ import { useFillOrder } from '@/modules/marketplace/hooks/use-fill-order';
 import { MarketList } from '@/modules/marketplace/components/market-list';
 import { StatsSection } from '@/modules/marketplace/components/stats-section';
 import type { Order } from '@/modules/marketplace/types/marketplace.types';
+import { parseFillError } from '@/modules/marketplace/utils/parse-fill-error';
 import { mapOrderToMarketplaceOrder } from '@/modules/marketplace/utils/order-mapper';
-
-function getFillErrorMessage(err: unknown): string {
-	const msg = err instanceof Error ? err.message : String(err);
-	if (msg.includes('ExpiredOrder')) return 'Order has expired';
-	if (msg.includes('BadSignature')) return 'Invalid order signature';
-	if (msg.includes('OrderUsed')) return 'Order already filled or cancelled';
-	if (msg.includes('TakerTooSmall')) return 'Amount below minimum required';
-	if (msg.includes('DeltaInvalid')) return 'Invalid price delta';
-	if (msg.includes('user rejected')) return 'Transaction rejected by user';
-	return msg.length > 80 ? 'Transaction failed' : msg;
-}
 
 export function MarketplacePage() {
 	const queryClient = useQueryClient();
@@ -70,7 +60,7 @@ export function MarketplacePage() {
 					duration: 5000,
 				});
 			} catch (err) {
-				toast.error(getFillErrorMessage(err));
+				toast.error(parseFillError(err));
 			}
 		},
 		[selectedOrder, fillOrderAsync, queryClient, onClose],

@@ -17,6 +17,7 @@ import { useModalRegister } from '@/modules/commons/hooks/modal/use-modal-regist
 import { useWeb3SubmitButton } from '@/modules/commons/hooks/use-web3-submit-button';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
+import { useVerifyOrderHash } from '@/modules/marketplace/hooks/use-verify-order-hash';
 import { mapOrderToMarketplaceOrder } from '@/modules/marketplace/utils/order-mapper';
 
 const MODAL_KEY = 'fill-order';
@@ -49,6 +50,8 @@ function FillOrderFormContent({
 	const chainId = sepolia.id;
 	const { address } = useAppKitAccount();
 	const { usdc, weth } = useVwapRfqTokenAddresses(chainId);
+	const { matches, diagnosis, isLoading: isVerifying } =
+		useVerifyOrderHash(apiOrder);
 
 	const displayOrder = mapOrderToMarketplaceOrder(apiOrder);
 	const isSellWeth = displayOrder.direction === 'SELL_WETH';
@@ -122,6 +125,16 @@ function FillOrderFormContent({
 					</DialogTitle>
 				</div>
 			</DialogHeader>
+			{!isVerifying && !matches && diagnosis && (
+				<div className='mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
+					<div className='flex items-start gap-2'>
+						<AlertCircle className='w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5' />
+						<p className='text-sm text-red-800 dark:text-red-200'>
+							{diagnosis}
+						</p>
+					</div>
+				</div>
+			)}
 			<div className='mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg'>
 				<div className='flex items-center justify-between mb-2'>
 					<span className='text-sm text-gray-600 dark:text-gray-400'>

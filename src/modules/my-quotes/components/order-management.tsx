@@ -7,6 +7,7 @@ interface OrderManagementProps {
 	orders: MakerOrder[];
 	onCancelOrder: (orderId: string) => void;
 	isLoading?: boolean;
+	isCancelling?: boolean;
 }
 
 type TabType = 'active' | 'filled' | 'cancelled';
@@ -15,6 +16,7 @@ export function OrderManagement({
 	orders,
 	onCancelOrder,
 	isLoading = false,
+	isCancelling = false,
 }: OrderManagementProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('active');
 
@@ -100,6 +102,7 @@ export function OrderManagement({
 						orders={filteredOrders}
 						onCancelOrder={onCancelOrder}
 						activeTab={activeTab}
+						isCancelling={isCancelling}
 					/>
 				)}
 			</div>

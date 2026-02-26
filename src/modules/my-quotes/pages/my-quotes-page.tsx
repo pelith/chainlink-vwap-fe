@@ -1,9 +1,10 @@
 import { useAppKitAccount } from '@reown/appkit/react';
 import { toast } from 'sonner';
-import { useCancelOrder, useOrders } from '@/api/use-orders-api';
+import { useOrders } from '@/api/use-orders-api';
 import { CreateQuoteFormContainer } from '@/modules/my-quotes/containers/create-quote-form-container';
 import { OrderManagement } from '@/modules/my-quotes/components/order-management';
 import { RiskMonitor } from '@/modules/my-quotes/components/risk-monitor';
+import { useCancelOrderOnChain } from '@/modules/my-quotes/hooks/use-cancel-order-on-chain';
 import { useCreateOrderFlow } from '@/modules/my-quotes/hooks/use-create-order-flow';
 import { mapOrderToMakerOrder } from '@/modules/my-quotes/utils/order-mapper';
 
@@ -15,7 +16,7 @@ export function MyQuotesPage() {
 		isError: isOrdersError,
 		isLoading: isOrdersLoading,
 	} = useOrders({ maker: address ?? undefined }, { enabled: !!address });
-	const { mutateAsync: cancelOrderMutate } = useCancelOrder();
+	const { cancelOrderAsync, isPending: isCancelling } = useCancelOrderOnChain();
 	const { createOrderWithSignature, phase } = useCreateOrderFlow();
 
 	const makerOrders = (ordersData ?? []).map(mapOrderToMakerOrder);
@@ -33,11 +34,15 @@ export function MyQuotesPage() {
 	const handleCancelOrder = async (orderId: string) => {
 		if (!address) return;
 		try {
-			await cancelOrderMutate({ hash: orderId, maker: address });
-			toast.success('Order cancelled successfully!');
+			await cancelOrderAsync(orderId, address);
+			toast.success('Order cancelled on-chain');
 		} catch (err) {
 			const message = err instanceof Error ? err.message : String(err);
-			toast.error(message);
+			if (message.includes('OrderUsed')) {
+				toast.error('Order already filled or cancelled');
+			} else {
+				toast.error(message);
+			}
 		}
 	};
 
@@ -78,6 +83,7 @@ export function MyQuotesPage() {
 							orders={makerOrders}
 							onCancelOrder={handleCancelOrder}
 							isLoading={isOrdersLoading}
+							isCancelling={isCancelling}
 						/>
 					</div>
 				</div>

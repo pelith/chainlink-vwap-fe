@@ -5,12 +5,14 @@ interface OrdersTableProps {
 	orders: MakerOrder[];
 	onCancelOrder: (orderId: string) => void;
 	activeTab: 'active' | 'filled' | 'cancelled';
+	isCancelling?: boolean;
 }
 
 export function OrdersTable({
 	orders,
 	onCancelOrder,
 	activeTab,
+	isCancelling = false,
 }: OrdersTableProps) {
 	const formatAmount = (amount: number, token: string) => {
 		if (token === 'USDC')
@@ -137,7 +139,8 @@ export function OrdersTable({
 										<button
 											type='button'
 											onClick={() => onCancelOrder(order.id)}
-											className='inline-flex items-center space-x-1 px-3 py-1.5 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm font-medium'
+											disabled={isCancelling}
+											className='inline-flex items-center space-x-1 px-3 py-1.5 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed'
 										>
 											<XCircle className='w-4 h-4' />
 											<span>Cancel</span>
