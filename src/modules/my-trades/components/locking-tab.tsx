@@ -1,4 +1,5 @@
 import { Clock, Hourglass, Info } from 'lucide-react';
+import { toast } from 'sonner';
 import { useMemo } from 'react';
 import { useChainId } from 'wagmi';
 import type { Trade } from '@/modules/my-trades/types/my-trades.types';
@@ -77,14 +78,18 @@ function LockingTradeCard({ trade }: { trade: Trade }) {
 	return (
 		<div className='border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow'>
 			<div className='flex items-center justify-between mb-4'>
-				<div className='flex items-center space-x-3'>
+				<div className='flex flex-col'>
 					<h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
-						Trade #{trade.id}
+						{trade.role} · {trade.depositedToken} → {trade.targetToken}
 					</h3>
-					<span className='text-sm text-gray-500'>|</span>
-					<span className='text-sm text-gray-600 dark:text-gray-400'>
-						Role: {trade.role} ({trade.depositedToken} → {trade.targetToken})
-					</span>
+					<button
+						type='button'
+						onClick={() => { navigator.clipboard.writeText(trade.id); toast.success('Trade ID copied'); }}
+						className='text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-left'
+						title='Copy trade ID'
+					>
+						#{trade.id.slice(0, 8)}...{trade.id.slice(-4)}
+					</button>
 				</div>
 				<span className='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'>
 					Locking Phase

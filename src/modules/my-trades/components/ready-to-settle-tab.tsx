@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle, RefreshCw, Loader2, Info, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 import { useMemo } from 'react';
 import { useChainId } from 'wagmi';
 import { Web3SubmitButton } from '@/modules/commons/components/web3-submit-button';
@@ -141,14 +142,18 @@ function SettleTradeCard({
 			}`}
 		>
 			<div className='flex items-center justify-between mb-4'>
-				<div className='flex items-center space-x-3'>
+				<div className='flex flex-col'>
 					<h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
-						Trade #{trade.id}
+						{trade.role} · {trade.depositedToken} → {trade.targetToken}
 					</h3>
-					<span className='text-sm text-gray-500'>|</span>
-					<span className='text-sm text-gray-600 dark:text-gray-400'>
-						Role: {trade.role} ({trade.depositedToken} → {trade.targetToken})
-					</span>
+					<button
+						type='button'
+						onClick={() => { navigator.clipboard.writeText(trade.id); toast.success('Trade ID copied'); }}
+						className='text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-left'
+						title='Copy trade ID'
+					>
+						#{trade.id.slice(0, 8)}...{trade.id.slice(-4)}
+					</button>
 				</div>
 				{isRefundable ? (
 					<span className='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-200 dark:bg-orange-800/50 text-orange-800 dark:text-orange-200'>

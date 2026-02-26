@@ -1,4 +1,5 @@
 import { Calendar, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
 import { useMemo } from 'react';
 import type { Trade } from '@/modules/my-trades/types/my-trades.types';
 
@@ -133,9 +134,14 @@ function HistoryRow({ trade }: { trade: Trade }) {
 				{trade.settledTime ? formatDate(trade.settledTime) : '-'}
 			</td>
 			<td className='px-6 py-4 whitespace-nowrap'>
-				<span className='text-sm font-medium text-blue-600 dark:text-blue-400'>
-					#{trade.id}
-				</span>
+				<button
+					type='button'
+					onClick={() => { navigator.clipboard.writeText(trade.id); toast.success('Trade ID copied'); }}
+					className='text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200'
+					title='Copy trade ID'
+				>
+					#{trade.id.slice(0, 8)}...{trade.id.slice(-4)}
+				</button>
 			</td>
 			<td className='px-6 py-4 whitespace-nowrap'>
 				<span
