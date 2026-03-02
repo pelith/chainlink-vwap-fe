@@ -3,6 +3,7 @@
  * Receives display values and callbacks from container.
  */
 
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export interface DepositFormProps {
@@ -85,11 +86,11 @@ export function DepositForm({
 						WETH balance: {wethBalanceDisplay} WETH
 					</p>
 				</div>
-				<button
+				<Button
 					type='button'
 					onClick={onSubmitClick}
 					disabled={submitDisabled}
-					className='w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-200 font-medium disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer'
+					className='w-full'
 				>
 					{submitIsPending ? (
 						<span className='flex items-center justify-center gap-2'>
@@ -99,7 +100,7 @@ export function DepositForm({
 					) : (
 						submitLabel
 					)}
-				</button>
+				</Button>
 			</div>
 			</CardContent>
 		</Card>

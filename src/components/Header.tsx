@@ -61,14 +61,14 @@ export default function Header() {
 							My Trades
 						</Link>
 						<Link
-							to='/wrap-eth'
+							to='/preset'
 							className={`px-1 py-2 font-medium transition-colors ${
-								isActive('/wrap-eth')
+								isActive('/preset')
 									? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
 									: 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
 							}`}
 						>
-							Wrap ETH
+							Preset
 						</Link>
 					</nav>
 					<div className='flex items-center space-x-4'>

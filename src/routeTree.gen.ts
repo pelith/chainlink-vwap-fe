@@ -9,14 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WrapEthRouteImport } from './routes/wrap-eth'
+import { Route as PresetRouteImport } from './routes/preset'
 import { Route as MyTradesRouteImport } from './routes/my-trades'
 import { Route as MyQuotesRouteImport } from './routes/my-quotes'
 import { Route as IndexRouteImport } from './routes/index'
 
-const WrapEthRoute = WrapEthRouteImport.update({
-  id: '/wrap-eth',
-  path: '/wrap-eth',
+const PresetRoute = PresetRouteImport.update({
+  id: '/preset',
+  path: '/preset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyTradesRoute = MyTradesRouteImport.update({
@@ -39,43 +39,43 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/my-quotes': typeof MyQuotesRoute
   '/my-trades': typeof MyTradesRoute
-  '/wrap-eth': typeof WrapEthRoute
+  '/preset': typeof PresetRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/my-quotes': typeof MyQuotesRoute
   '/my-trades': typeof MyTradesRoute
-  '/wrap-eth': typeof WrapEthRoute
+  '/preset': typeof PresetRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/my-quotes': typeof MyQuotesRoute
   '/my-trades': typeof MyTradesRoute
-  '/wrap-eth': typeof WrapEthRoute
+  '/preset': typeof PresetRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/my-quotes' | '/my-trades' | '/wrap-eth'
+  fullPaths: '/' | '/my-quotes' | '/my-trades' | '/preset'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/my-quotes' | '/my-trades' | '/wrap-eth'
-  id: '__root__' | '/' | '/my-quotes' | '/my-trades' | '/wrap-eth'
+  to: '/' | '/my-quotes' | '/my-trades' | '/preset'
+  id: '__root__' | '/' | '/my-quotes' | '/my-trades' | '/preset'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MyQuotesRoute: typeof MyQuotesRoute
   MyTradesRoute: typeof MyTradesRoute
-  WrapEthRoute: typeof WrapEthRoute
+  PresetRoute: typeof PresetRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/wrap-eth': {
-      id: '/wrap-eth'
-      path: '/wrap-eth'
-      fullPath: '/wrap-eth'
-      preLoaderRoute: typeof WrapEthRouteImport
+    '/preset': {
+      id: '/preset'
+      path: '/preset'
+      fullPath: '/preset'
+      preLoaderRoute: typeof PresetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-trades': {
@@ -106,7 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MyQuotesRoute: MyQuotesRoute,
   MyTradesRoute: MyTradesRoute,
-  WrapEthRoute: WrapEthRoute,
+  PresetRoute: PresetRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
