@@ -22,6 +22,14 @@ export function normalizeOrderHash(hash: string): string {
 	return trimmed.startsWith('0x') ? trimmed : `0x${trimmed}`;
 }
 
+/**
+ * Normalizes order hash to bytes32 for contract calls (used, getTrade, cancelOrderHash, etc.).
+ */
+export function toOrderHashBytes32(hash: string): `0x${string}` {
+	const trimmed = hash.trim();
+	return (trimmed.startsWith('0x') ? trimmed : `0x${trimmed}`) as `0x${string}`;
+}
+
 export type FillOrderStruct = {
 	maker: `0x${string}`;
 	makerIsSellETH: boolean;

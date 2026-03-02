@@ -1,12 +1,12 @@
-import { AlertTriangle, CheckCircle, RefreshCw, Loader2, Info, Clock } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, Info, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMemo } from 'react';
 import { useChainId } from 'wagmi';
 import { Web3SubmitButton } from '@/modules/commons/components/web3-submit-button';
 import { TARGET_CHAIN_ID } from '@/lib/constants';
-import type { Trade } from '@/modules/my-trades/types/my-trades.types';
 import { useVwapOraclePrice } from '@/modules/contracts/hooks/use-vwap-oracle-price';
 import { useVwapRfqConstants } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
+import type { Trade } from '@/modules/my-trades/types/my-trades.types';
 import { calculateSettlement } from '../utils/settlement-math';
 
 interface ReadyToSettleTabProps {
@@ -129,7 +129,7 @@ function SettleTradeCard({
 	const payoutToken = settlementData?.payoutToken ?? trade.targetToken;
 	const refundToken = settlementData?.refundToken ?? trade.depositedToken;
 
-	const isWaitingForOracle = !isPriceLoading && !vwapPrice && !isRefundable;
+	const isWaitingForOracle = isPriceLoading && !vwapPrice && !isRefundable;
 
 	return (
 		<div

@@ -12,9 +12,11 @@ import {
 	FILL_ORDER_MODAL_KEY,
 } from '@/modules/marketplace/components/fill-order-modal';
 import { useFillOrder } from '@/modules/marketplace/hooks/use-fill-order';
+import { useOrdersFilledOnChain } from '@/modules/marketplace/hooks/use-orders-filled-on-chain';
 import { MarketList } from '@/modules/marketplace/components/market-list';
 import { StatsSection } from '@/modules/marketplace/components/stats-section';
 import type { Order } from '@/modules/marketplace/types/marketplace.types';
+import { normalizeOrderHash } from '@/modules/marketplace/utils/fill-order-params';
 import { parseFillError } from '@/modules/marketplace/utils/parse-fill-error';
 import { mapOrderToMarketplaceOrder } from '@/modules/marketplace/utils/order-mapper';
 
@@ -33,10 +35,18 @@ export function MarketplacePage() {
 		isFetching,
 	} = useOrders({ status: 'active' });
 
-	const displayOrders = useMemo(
-		() => (apiOrders ?? []).map(mapOrderToMarketplaceOrder),
-		[apiOrders],
+	const { orderStatusMap, isLoading: isOnChainLoading } = useOrdersFilledOnChain(
+		apiOrders ?? [],
 	);
+
+	const displayOrders = useMemo(() => {
+		const mapped = (apiOrders ?? []).map(mapOrderToMarketplaceOrder);
+		if (isOnChainLoading) return mapped;
+		return mapped.filter((o) => {
+			const status = orderStatusMap.get(normalizeOrderHash(o.id));
+			return status !== 'filled' && status !== 'cancelled';
+		});
+	}, [apiOrders, orderStatusMap, isOnChainLoading]);
 
 	const handleFillClick = useCallback(
 		async (displayOrder: Order) => {

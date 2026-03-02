@@ -1,8 +1,8 @@
 import type { Address } from 'viem';
 import { useWriteContract } from 'wagmi';
-import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 import { env } from '@/env';
 import { TARGET_CHAIN_ID } from '@/lib/constants';
+import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 
 export function useSettleTrade() {
 	const {
@@ -11,6 +11,7 @@ export function useSettleTrade() {
 		isPending,
 		isSuccess,
 		data: hash,
+		error,
 		reset,
 	} = useWriteContract();
 
@@ -48,6 +49,7 @@ export function useSettleTrade() {
 		isSuccess,
 		hash,
 		reset,
+		error,
 	};
 }
 
@@ -58,6 +60,7 @@ export function useRefundTrade() {
 		isPending,
 		isSuccess,
 		data: hash,
+		error,
 		reset,
 	} = useWriteContract();
 
@@ -94,6 +97,7 @@ export function useRefundTrade() {
 		isSuccess,
 		hash,
 		reset,
+		error,
 	};
 }
 

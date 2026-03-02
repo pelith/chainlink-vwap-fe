@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
 import { toast } from 'sonner';
+import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
+import { useTrades } from '@/api/use-trades-api';
 import { HistoryTab } from '@/modules/my-trades/components/history-tab';
 import { LockingTab } from '@/modules/my-trades/components/locking-tab';
 import { ReadyToSettleTab } from '@/modules/my-trades/components/ready-to-settle-tab';
-import { useTrades } from '@/api/use-trades-api';
+import { useRefundTrade, useSettleTrade } from '../hooks/use-trade-actions';
 import { mapApiTradeToUITrade } from '../utils/trade-mapper';
-import { useSettleTrade, useRefundTrade } from '../hooks/use-trade-actions';
 
 export function MyTradesPage() {
 	const { address } = useAccount();
@@ -15,8 +15,8 @@ export function MyTradesPage() {
 		address: address as string,
 	});
 
-	const { settle, data: settleHash, isPending: isSettleSubmitPending, error: settleError, reset: resetSettle } = useSettleTrade();
-	const { refund, data: refundHash, isPending: isRefundSubmitPending, error: refundError, reset: resetRefund } = useRefundTrade();
+	const { settle, hash: settleHash, isPending: isSettleSubmitPending, error: settleError, reset: resetSettle } = useSettleTrade();
+	const { refund, hash: refundHash, isPending: isRefundSubmitPending, error: refundError, reset: resetRefund } = useRefundTrade();
 
 	const { isLoading: isSettleConfirming, isSuccess: isSettleSuccess } = useWaitForTransactionReceipt({ hash: settleHash });
 	const { isLoading: isRefundConfirming, isSuccess: isRefundSuccess } = useWaitForTransactionReceipt({ hash: refundHash });

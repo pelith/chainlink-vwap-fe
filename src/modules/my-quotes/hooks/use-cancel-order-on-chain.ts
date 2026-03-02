@@ -10,13 +10,9 @@ import { cancelOrder } from '@/api/orders.api';
 import { env } from '@/env';
 import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
+import { toOrderHashBytes32 } from '@/modules/marketplace/utils/fill-order-params';
 
 const CHAIN_ID = TARGET_CHAIN_ID;
-
-function toOrderHashBytes32(hash: string): `0x${string}` {
-	const trimmed = hash.trim();
-	return (trimmed.startsWith('0x') ? trimmed : `0x${trimmed}`) as `0x${string}`;
-}
 
 export function useCancelOrderOnChain() {
 	const queryClient = useQueryClient();
