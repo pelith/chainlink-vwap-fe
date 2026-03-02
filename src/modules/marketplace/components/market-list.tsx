@@ -20,10 +20,10 @@ export function MarketList({
 		<div className='mt-8'>
 			<div className='flex items-center justify-between mb-6'>
 				<div className='flex items-center gap-4'>
-					<h2 className='text-2xl font-semibold text-gray-900 dark:text-white'>
+					<h2 className='text-2xl font-semibold text-foreground'>
 						Available Orders
 					</h2>
-					<span className='text-sm text-gray-600 dark:text-gray-400'>
+					<span className='text-sm text-muted-foreground'>
 						{orders.length} active orders
 					</span>
 				</div>
@@ -32,7 +32,7 @@ export function MarketList({
 					size='sm'
 					onClick={onRefresh}
 					disabled={isRefreshing}
-					className='gap-2'
+					className='gap-2 transition-colors duration-200 cursor-pointer'
 				>
 					<RefreshCw
 						className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}

@@ -2,6 +2,7 @@ import { formatUnits } from 'viem';
 import { AlertTriangle, Shield, TrendingUp } from 'lucide-react';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { env } from '@/env';
+import { Card, CardContent } from '@/components/ui/card';
 import { formatCommonNumber } from '@/lib/bignumber';
 import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { useTokenAllowance } from '@/modules/contracts/hooks/use-token-allowance';
@@ -48,7 +49,6 @@ export function RiskMonitor({ orders, onIncreaseAllowanceClick }: RiskMonitorPro
 		chainId,
 	);
 
-	// Exposure: sum of open order amount / token allowance (智能合約授權額度)
 	const activeOrders = orders.filter((o) => o.status === 'active');
 	const totalExposureWETH = activeOrders
 		.filter((o) => o.direction === 'SELL_WETH')
@@ -96,35 +96,26 @@ export function RiskMonitor({ orders, onIncreaseAllowanceClick }: RiskMonitorPro
 	const usdcWalletSufficient =
 		walletUsdcNum != null && walletUsdcNum >= totalExposureUSDC;
 
-	// When wallet has sufficient balance but allowance is low, show Warning instead of Critical (user can fix by increasing allowance)
 	const getZoneColor = (percent: number, walletSufficient: boolean) => {
 		const wouldBeCritical = percent >= 90;
 		if (wouldBeCritical && walletSufficient)
 			return {
-				bg: 'bg-yellow-100 dark:bg-yellow-900/30',
-				border: 'border-yellow-300 dark:border-yellow-800',
-				text: 'text-yellow-700 dark:text-yellow-400',
 				bar: 'bg-yellow-500',
+				textClass: 'text-yellow-700 dark:text-yellow-400',
 			};
 		if (wouldBeCritical)
 			return {
-				bg: 'bg-red-100 dark:bg-red-900/30',
-				border: 'border-red-300 dark:border-red-800',
-				text: 'text-red-700 dark:text-red-400',
-				bar: 'bg-red-500',
+				bar: 'bg-destructive',
+				textClass: 'text-destructive',
 			};
 		if (percent >= 60)
 			return {
-				bg: 'bg-yellow-100 dark:bg-yellow-900/30',
-				border: 'border-yellow-300 dark:border-yellow-800',
-				text: 'text-yellow-700 dark:text-yellow-400',
 				bar: 'bg-yellow-500',
+				textClass: 'text-yellow-700 dark:text-yellow-400',
 			};
 		return {
-			bg: 'bg-green-100 dark:bg-green-900/30',
-			border: 'border-green-300 dark:border-green-800',
-			text: 'text-green-700 dark:text-green-400',
 			bar: 'bg-green-500',
+			textClass: 'text-green-700 dark:text-green-400',
 		};
 	};
 
@@ -138,181 +129,197 @@ export function RiskMonitor({ orders, onIncreaseAllowanceClick }: RiskMonitorPro
 		wethExposurePercent >= 60 || usdcExposurePercent >= 60;
 
 	return (
-		<div className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6'>
-			<div className='flex items-center justify-between mb-6'>
-				<div className='flex items-center space-x-2'>
-					<Shield className='w-5 h-5 text-blue-600 dark:text-blue-400' />
-					<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
-						Risk & Allowance Monitor
-					</h2>
+		<Card>
+			<CardContent className='pt-6'>
+				<div className='flex items-center justify-between mb-6'>
+					<div className='flex items-center space-x-2'>
+						<Shield className='w-5 h-5 text-primary' />
+						<h2 className='text-lg font-semibold text-foreground'>
+							Risk & Allowance Monitor
+						</h2>
+					</div>
+					{needsAllowanceIncrease && (
+						<button
+							type='button'
+							onClick={onIncreaseAllowanceClick}
+							className='flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-200 text-sm font-medium cursor-pointer'
+						>
+							<TrendingUp className='w-4 h-4' />
+							<span>Increase Allowance</span>
+						</button>
+					)}
 				</div>
-				{needsAllowanceIncrease && (
-					<button
-						type='button'
-						onClick={onIncreaseAllowanceClick}
-						className='flex items-center space-x-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium'
+				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+					<div
+						className={`p-4 rounded-lg border ${
+							wethExposurePercent >= 90
+								? wethIsCritical
+									? 'border-destructive/50 bg-destructive/5'
+									: 'border-yellow-500/50 bg-yellow-500/5'
+								: wethExposurePercent >= 60
+									? 'border-yellow-500/50 bg-yellow-500/5'
+									: 'border-green-500/30 bg-green-500/5'
+						}`}
 					>
-						<TrendingUp className='w-4 h-4' />
-						<span>Increase Allowance</span>
-					</button>
-				)}
-			</div>
-			<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-				<div
-					className={`p-4 rounded-lg border ${wethColors.border} ${wethColors.bg}`}
-				>
-					<div className='flex items-center justify-between mb-3'>
-						<div>
-							<h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-								WETH Exposure
-							</h3>
-							<p className='text-2xl font-semibold text-gray-900 dark:text-white mt-1'>
-								{totalExposureWETH.toFixed(2)} /{' '}
-								{allowanceWETH != null
-									? allowanceWETH.toFixed(2)
-									: '—'}
-							</p>
-							<p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
-								Open orders / Allowance
-							</p>
+						<div className='flex items-center justify-between mb-3'>
+							<div>
+								<h3 className='text-sm font-medium text-foreground'>
+									WETH Exposure
+								</h3>
+								<p className='text-2xl font-semibold text-foreground mt-1'>
+									{totalExposureWETH.toFixed(2)} /{' '}
+									{allowanceWETH != null
+										? allowanceWETH.toFixed(2)
+										: '—'}
+								</p>
+								<p className='text-xs text-muted-foreground mt-0.5'>
+									Open orders / Allowance
+								</p>
+							</div>
+							{wethExposurePercent >= 60 && (
+								<AlertTriangle className={`w-6 h-6 ${wethColors.textClass}`} />
+							)}
 						</div>
-						{wethExposurePercent >= 60 && (
-							<AlertTriangle className={`w-6 h-6 ${wethColors.text}`} />
+						<div className='relative w-full h-3 bg-muted rounded-full overflow-hidden'>
+							<div
+								className={`h-full ${wethColors.bar} transition-all duration-500`}
+								style={{ width: `${Math.min(wethExposurePercent, 100)}%` }}
+							/>
+						</div>
+						<div className='flex items-center justify-between mt-2'>
+							<span className='text-xs text-muted-foreground'>
+								Wallet:{' '}
+								{wethBalanceData?.isLoading
+									? 'Loading…'
+									: walletBalanceWETH != null
+										? `${formatCommonNumber(walletBalanceWETH)} WETH`
+										: '—'}
+							</span>
+							<div className='text-xs space-x-3'>
+								<span
+									className={wethExposurePercent >= 60 ? wethColors.textClass : 'text-muted-foreground'}
+									title='Exposure / Allowance'
+								>
+									Allowance {wethExposurePercent.toFixed(1)}%
+								</span>
+								<span className='text-muted-foreground' title='Exposure / Wallet'>
+									Wallet{' '}
+									{wethWalletPercent != null
+										? `${wethWalletPercent.toFixed(1)}%`
+										: '—'}
+								</span>
+							</div>
+						</div>
+						{wethExposurePercent >= 90 && (
+							<p
+								className={`text-xs mt-2 flex items-center gap-1 ${
+									wethIsCritical ? 'text-destructive' : 'text-yellow-700 dark:text-yellow-400'
+								}`}
+							>
+								<AlertTriangle className='w-3.5 h-3.5 shrink-0' />
+								{wethIsCritical
+									? 'Critical: Risk of failed fills'
+									: 'Increase allowance to enable fills'}
+							</p>
 						)}
 					</div>
-					<div className='relative w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden'>
-						<div
-							className={`h-full ${wethColors.bar} transition-all duration-500`}
-							style={{ width: `${Math.min(wethExposurePercent, 100)}%` }}
-						/>
-					</div>
-					<div className='flex items-center justify-between mt-2'>
-						<span className='text-xs text-gray-600 dark:text-gray-400'>
-							Wallet:{' '}
-							{wethBalanceData?.isLoading
-								? 'Loading…'
-								: walletBalanceWETH != null
-									? `${formatCommonNumber(walletBalanceWETH)} WETH`
-									: '—'}
-						</span>
-						<div className='text-xs space-x-3'>
-							<span
-								className={wethExposurePercent >= 60 ? wethColors.text : ''}
-								title='Exposure / Allowance'
+					<div
+						className={`p-4 rounded-lg border ${
+							usdcExposurePercent >= 90
+								? usdcIsCritical
+									? 'border-destructive/50 bg-destructive/5'
+									: 'border-yellow-500/50 bg-yellow-500/5'
+								: usdcExposurePercent >= 60
+									? 'border-yellow-500/50 bg-yellow-500/5'
+									: 'border-green-500/30 bg-green-500/5'
+						}`}
+					>
+						<div className='flex items-center justify-between mb-3'>
+							<div>
+								<h3 className='text-sm font-medium text-foreground'>
+									USDC Exposure
+								</h3>
+								<p className='text-2xl font-semibold text-foreground mt-1'>
+									{totalExposureUSDC.toLocaleString()} /{' '}
+									{allowanceUSDC != null
+										? allowanceUSDC.toLocaleString()
+										: '—'}
+								</p>
+								<p className='text-xs text-muted-foreground mt-0.5'>
+									Open orders / Allowance
+								</p>
+							</div>
+							{usdcExposurePercent >= 60 && (
+								<AlertTriangle className={`w-6 h-6 ${usdcColors.textClass}`} />
+							)}
+						</div>
+						<div className='relative w-full h-3 bg-muted rounded-full overflow-hidden'>
+							<div
+								className={`h-full ${usdcColors.bar} transition-all duration-500`}
+								style={{ width: `${Math.min(usdcExposurePercent, 100)}%` }}
+							/>
+						</div>
+						<div className='flex items-center justify-between mt-2'>
+							<span className='text-xs text-muted-foreground'>
+								Wallet:{' '}
+								{usdcBalanceData?.isLoading
+									? 'Loading…'
+									: walletBalanceUSDC != null
+										? `${formatCommonNumber(walletBalanceUSDC)} USDC`
+										: '—'}
+							</span>
+							<div className='text-xs space-x-3'>
+								<span
+									className={usdcExposurePercent >= 60 ? usdcColors.textClass : 'text-muted-foreground'}
+									title='Exposure / Allowance'
+								>
+									Allowance {usdcExposurePercent.toFixed(1)}%
+								</span>
+								<span className='text-muted-foreground' title='Exposure / Wallet'>
+									Wallet{' '}
+									{usdcWalletPercent != null
+										? `${usdcWalletPercent.toFixed(1)}%`
+										: '—'}
+								</span>
+							</div>
+						</div>
+						{usdcExposurePercent >= 90 && (
+							<p
+								className={`text-xs mt-2 flex items-center gap-1 ${
+									usdcIsCritical ? 'text-destructive' : 'text-yellow-700 dark:text-yellow-400'
+								}`}
 							>
-								Allowance {wethExposurePercent.toFixed(1)}%
-							</span>
-							<span className='text-gray-600 dark:text-gray-400' title='Exposure / Wallet'>
-								Wallet{' '}
-								{wethWalletPercent != null
-									? `${wethWalletPercent.toFixed(1)}%`
-									: '—'}
-							</span>
-						</div>
-					</div>
-					{wethExposurePercent >= 90 && (
-						<p
-							className={`text-xs mt-2 ${
-								wethIsCritical
-									? 'text-red-700 dark:text-red-400'
-									: 'text-yellow-700 dark:text-yellow-400'
-							}`}
-						>
-							{wethIsCritical
-								? '⚠️ Critical: Risk of failed fills'
-								: 'Increase allowance to enable fills'}
-						</p>
-					)}
-				</div>
-				<div
-					className={`p-4 rounded-lg border ${usdcColors.border} ${usdcColors.bg}`}
-				>
-					<div className='flex items-center justify-between mb-3'>
-						<div>
-							<h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-								USDC Exposure
-							</h3>
-							<p className='text-2xl font-semibold text-gray-900 dark:text-white mt-1'>
-								{totalExposureUSDC.toLocaleString()} /{' '}
-								{allowanceUSDC != null
-									? allowanceUSDC.toLocaleString()
-									: '—'}
+								<AlertTriangle className='w-3.5 h-3.5 shrink-0' />
+								{usdcIsCritical
+									? 'Critical: Risk of failed fills'
+									: 'Increase allowance to enable fills'}
 							</p>
-							<p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
-								Open orders / Allowance
-							</p>
-						</div>
-						{usdcExposurePercent >= 60 && (
-							<AlertTriangle className={`w-6 h-6 ${usdcColors.text}`} />
 						)}
 					</div>
-					<div className='relative w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden'>
-						<div
-							className={`h-full ${usdcColors.bar} transition-all duration-500`}
-							style={{ width: `${Math.min(usdcExposurePercent, 100)}%` }}
-						/>
-					</div>
-					<div className='flex items-center justify-between mt-2'>
-						<span className='text-xs text-gray-600 dark:text-gray-400'>
-							Wallet:{' '}
-							{usdcBalanceData?.isLoading
-								? 'Loading…'
-								: walletBalanceUSDC != null
-									? `${formatCommonNumber(walletBalanceUSDC)} USDC`
-									: '—'}
-						</span>
-						<div className='text-xs space-x-3'>
-							<span
-								className={usdcExposurePercent >= 60 ? usdcColors.text : ''}
-								title='Exposure / Allowance'
-							>
-								Allowance {usdcExposurePercent.toFixed(1)}%
+				</div>
+				<div className='mt-4 pt-4 border-t border-border'>
+					<div className='flex items-center justify-center space-x-6 text-xs'>
+						<div className='flex items-center space-x-2'>
+							<div className='w-3 h-3 bg-green-500 rounded' />
+							<span className='text-muted-foreground'>
+								Safe (&lt;60%)
 							</span>
-							<span className='text-gray-600 dark:text-gray-400' title='Exposure / Wallet'>
-								Wallet{' '}
-								{usdcWalletPercent != null
-									? `${usdcWalletPercent.toFixed(1)}%`
-									: '—'}
+						</div>
+						<div className='flex items-center space-x-2'>
+							<div className='w-3 h-3 bg-yellow-500 rounded' />
+							<span className='text-muted-foreground'>
+								Warning (60-90%)
+							</span>
+						</div>
+						<div className='flex items-center space-x-2'>
+							<div className='w-3 h-3 bg-destructive rounded' />
+							<span className='text-muted-foreground'>
+								Critical (&gt;90%)
 							</span>
 						</div>
 					</div>
-					{usdcExposurePercent >= 90 && (
-						<p
-							className={`text-xs mt-2 ${
-								usdcIsCritical
-									? 'text-red-700 dark:text-red-400'
-									: 'text-yellow-700 dark:text-yellow-400'
-							}`}
-						>
-							{usdcIsCritical
-								? '⚠️ Critical: Risk of failed fills'
-								: 'Increase allowance to enable fills'}
-						</p>
-					)}
 				</div>
-			</div>
-			<div className='mt-4 pt-4 border-t border-gray-200 dark:border-gray-700'>
-				<div className='flex items-center justify-center space-x-6 text-xs'>
-					<div className='flex items-center space-x-2'>
-						<div className='w-3 h-3 bg-green-500 rounded' />
-						<span className='text-gray-600 dark:text-gray-400'>
-							Safe (&lt;60%)
-						</span>
-					</div>
-					<div className='flex items-center space-x-2'>
-						<div className='w-3 h-3 bg-yellow-500 rounded' />
-						<span className='text-gray-600 dark:text-gray-400'>
-							Warning (60-90%)
-						</span>
-					</div>
-					<div className='flex items-center space-x-2'>
-						<div className='w-3 h-3 bg-red-500 rounded' />
-						<span className='text-gray-600 dark:text-gray-400'>
-							Critical (&gt;90%)
-						</span>
-					</div>
-				</div>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 	);
 }

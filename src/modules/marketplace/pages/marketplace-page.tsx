@@ -1,4 +1,4 @@
-import { Loader2, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,6 +18,7 @@ import { StatsSection } from '@/modules/marketplace/components/stats-section';
 import type { Order } from '@/modules/marketplace/types/marketplace.types';
 import { normalizeOrderHash } from '@/modules/marketplace/utils/fill-order-params';
 import { parseFillError } from '@/modules/marketplace/utils/parse-fill-error';
+import { Skeleton } from '@/components/ui/skeleton';
 import { mapOrderToMarketplaceOrder } from '@/modules/marketplace/utils/order-mapper';
 
 export function MarketplacePage() {
@@ -80,15 +81,15 @@ export function MarketplacePage() {
 	);
 
 	return (
-		<div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
+		<div className='min-h-screen bg-background'>
 			<main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16'>
 				<StatsSection />
 				{isOrdersError && (
-					<div className='mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'>
-						<p className='text-red-700 dark:text-red-300 font-medium'>
+					<div className='mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20'>
+						<p className='text-destructive font-medium'>
 							Failed to load orders
 						</p>
-						<p className='mt-1 text-sm text-red-600 dark:text-red-400'>
+						<p className='mt-1 text-sm text-destructive/90'>
 							{ordersError instanceof Error
 								? ordersError.message
 								: String(ordersError)}
@@ -96,14 +97,21 @@ export function MarketplacePage() {
 					</div>
 				)}
 				{!isOrdersError && isOrdersLoading && (
-					<div className='flex flex-col items-center justify-center py-12'>
-						<Loader2 className='w-12 h-12 text-blue-500 dark:text-blue-400 animate-spin mb-4' />
-						<p className='text-gray-500 dark:text-gray-400'>Loading orders…</p>
+					<div className='mt-8 space-y-6'>
+						<div className='flex items-center justify-between'>
+							<Skeleton className='h-8 w-48' />
+							<Skeleton className='h-9 w-24' />
+						</div>
+						<div className='space-y-3'>
+							<Skeleton className='h-24 w-full rounded-xl' />
+							<Skeleton className='h-24 w-full rounded-xl' />
+							<Skeleton className='h-24 w-full rounded-xl' />
+						</div>
 					</div>
 				)}
 				{!isOrdersError && !isOrdersLoading && displayOrders.length === 0 && (
 					<div className='text-center py-12'>
-						<p className='text-gray-500 dark:text-gray-400 text-lg mb-4'>
+						<p className='text-muted-foreground text-lg mb-4'>
 							No available orders
 						</p>
 						<Button
@@ -111,7 +119,7 @@ export function MarketplacePage() {
 							size='sm'
 							onClick={() => refetch()}
 							disabled={isFetching}
-							className='gap-2'
+							className='gap-2 transition-colors duration-200 cursor-pointer'
 						>
 							<RefreshCw
 								className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`}

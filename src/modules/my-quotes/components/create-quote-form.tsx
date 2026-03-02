@@ -5,6 +5,7 @@
 
 import { Info, Sparkles } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
+import { Card, CardContent } from '@/components/ui/card';
 import {
 	Form,
 	FormControl,
@@ -14,8 +15,8 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { Web3SubmitButton } from '@/modules/commons/components/web3-submit-button';
-import type { CreateQuoteFormValues } from '@/modules/my-quotes/schemas/create-quote-form-schema';
 import type { AllowanceConfig } from '@/modules/commons/hooks/use-web3-submit-button';
+import type { CreateQuoteFormValues } from '@/modules/my-quotes/schemas/create-quote-form-schema';
 
 export interface CreateQuoteFormProps {
 	form: UseFormReturn<CreateQuoteFormValues>;
@@ -54,8 +55,9 @@ export function CreateQuoteForm({
 		: null;
 
 	return (
-		<div className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 sticky top-8'>
-			<h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
+		<Card className='sticky top-8'>
+			<CardContent className='pt-6'>
+			<h2 className='text-xl font-semibold text-foreground mb-6'>
 				Create New RFQ Order
 			</h2>
 			{formErrorMessage && (
@@ -73,22 +75,22 @@ export function CreateQuoteForm({
 						name='direction'
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel className='text-gray-700 dark:text-gray-300'>
+								<FormLabel className='text-foreground'>
 									Direction
 								</FormLabel>
 								<FormControl>
 									<fieldset
 										ref={field.ref}
 										onBlur={field.onBlur}
-										className='grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg border-0'
+										className='grid grid-cols-2 gap-2 p-1 bg-muted rounded-lg border-0'
 									>
 										<button
 											type='button'
 											onClick={() => field.onChange('SELL_WETH')}
-											className={`py-2 px-4 rounded-md font-medium transition-all ${
+											className={`py-2 px-4 rounded-md font-medium transition-colors duration-200 cursor-pointer ${
 												field.value === 'SELL_WETH'
-													? 'bg-white dark:bg-gray-600 text-red-700 dark:text-red-400 shadow-sm'
-													: 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+													? 'bg-card text-red-400 dark:text-red-400 shadow-sm'
+													: 'text-muted-foreground hover:text-foreground'
 											}`}
 										>
 											Sell WETH
@@ -96,10 +98,10 @@ export function CreateQuoteForm({
 										<button
 											type='button'
 											onClick={() => field.onChange('SELL_USDC')}
-											className={`py-2 px-4 rounded-md font-medium transition-all ${
+											className={`py-2 px-4 rounded-md font-medium transition-colors duration-200 cursor-pointer ${
 												field.value === 'SELL_USDC'
-													? 'bg-white dark:bg-gray-600 text-green-700 dark:text-green-400 shadow-sm'
-													: 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+													? 'bg-card text-green-600 dark:text-green-400 shadow-sm'
+													: 'text-muted-foreground hover:text-foreground'
 											}`}
 										>
 											Sell USDC
@@ -115,7 +117,7 @@ export function CreateQuoteForm({
 						name='amount'
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel className='text-gray-700 dark:text-gray-300'>
+								<FormLabel className='text-foreground'>
 									Sell Amount
 								</FormLabel>
 								<FormControl>
@@ -125,14 +127,14 @@ export function CreateQuoteForm({
 											type='text'
 											inputMode='decimal'
 											placeholder='0.00'
-											className='w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none dark:bg-gray-700 dark:text-white dark:placeholder-gray-400'
+											className='w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent outline-none bg-background text-foreground placeholder:text-muted-foreground'
 										/>
-										<span className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium'>
+										<span className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium'>
 											{sellToken}
 										</span>
 									</div>
 								</FormControl>
-								<p className='text-sm text-gray-500 dark:text-gray-400'>
+								<p className='text-sm text-muted-foreground'>
 									Balance: {balanceDisplayText} {sellToken}
 								</p>
 								<FormMessage />
@@ -144,7 +146,7 @@ export function CreateQuoteForm({
 						name='delta'
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel className='text-gray-700 dark:text-gray-300'>
+								<FormLabel className='text-foreground'>
 									Price Delta (bps)
 								</FormLabel>
 								<FormControl>
@@ -154,19 +156,19 @@ export function CreateQuoteForm({
 											type='number'
 											placeholder='0'
 											step='1'
-											className='w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none dark:bg-gray-700 dark:text-white dark:placeholder-gray-400'
+											className='w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent outline-none bg-background text-foreground placeholder:text-muted-foreground'
 										/>
-										<span className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium'>
+										<span className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium'>
 											bps
 										</span>
 									</div>
 								</FormControl>
-								<div className='mt-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg'>
-									<p className='text-sm text-blue-900 dark:text-blue-200'>
+								<div className='mt-2 p-3 bg-primary/5 border border-primary/20 rounded-lg'>
+									<p className='text-sm text-foreground'>
 										Final Price = 12H VWAP × (1 {isPositiveDelta ? '+' : ''}{' '}
 										{deltaPercent}%)
 									</p>
-									<p className='text-xs text-blue-700 dark:text-blue-300 mt-1'>
+									<p className='text-xs text-muted-foreground mt-1'>
 										{isPositiveDelta
 											? 'Positive delta means you sell higher than VWAP.'
 											: 'Negative delta means you sell lower than VWAP.'}
@@ -181,7 +183,7 @@ export function CreateQuoteForm({
 						name='minAmountOut'
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel className='text-gray-700 dark:text-gray-300'>
+								<FormLabel className='text-foreground'>
 									Minimum Taker Deposit
 								</FormLabel>
 								<FormControl>
@@ -191,9 +193,9 @@ export function CreateQuoteForm({
 											type='text'
 											inputMode='decimal'
 											placeholder='0.00'
-											className='w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none dark:bg-gray-700 dark:text-white dark:placeholder-gray-400'
+											className='w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent outline-none bg-background text-foreground placeholder:text-muted-foreground'
 										/>
-										<span className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium'>
+										<span className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium'>
 											{receiveToken}
 										</span>
 									</div>
@@ -202,15 +204,15 @@ export function CreateQuoteForm({
 									type='button'
 									onClick={onAutoCalculate}
 									disabled={autoCalculateDisabled}
-									className='mt-2 flex items-center space-x-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+									className='mt-2 flex items-center space-x-1 text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer'
 								>
 									<Sparkles className='w-4 h-4' />
 									<span>{autoCalculateButtonLabel}</span>
 								</button>
-								<div className='mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg'>
+								<div className='mt-2 p-3 bg-muted/50 rounded-lg'>
 									<div className='flex items-start space-x-2'>
-										<Info className='w-4 h-4 text-gray-500 dark:text-gray-400 shrink-0 mt-0.5' />
-										<p className='text-xs text-gray-600 dark:text-gray-400'>
+										<Info className='w-4 h-4 text-muted-foreground shrink-0 mt-0.5' />
+										<p className='text-xs text-muted-foreground'>
 											Takers must deposit at least this amount to trigger the
 											trade.
 										</p>
@@ -225,13 +227,13 @@ export function CreateQuoteForm({
 						name='deadline'
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel className='text-gray-700 dark:text-gray-300'>
+								<FormLabel className='text-foreground'>
 									Deadline
 								</FormLabel>
 								<FormControl>
 									<select
 										{...field}
-										className='w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 dark:text-white'
+										className='w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent outline-none bg-background text-foreground'
 									>
 										<option value='1'>1 hour</option>
 										<option value='6'>6 hours</option>
@@ -254,6 +256,7 @@ export function CreateQuoteForm({
 					/>
 				</form>
 			</Form>
-		</div>
+			</CardContent>
+		</Card>
 	);
 }

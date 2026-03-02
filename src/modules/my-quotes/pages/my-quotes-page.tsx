@@ -52,22 +52,22 @@ export function MyQuotesPage() {
 	};
 
 	return (
-		<div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
+		<div className='min-h-screen bg-background'>
 			<main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-				<h1 className='text-3xl font-semibold text-gray-900 dark:text-white mb-8'>
+				<h1 className='text-3xl font-semibold text-foreground mb-8'>
 					My Quotes
 				</h1>
 				{!address && (
-					<p className='mb-6 text-gray-600 dark:text-gray-400'>
+					<p className='mb-6 text-muted-foreground'>
 						Connect your wallet to create and manage quotes
 					</p>
 				)}
 				{address && isOrdersError && (
-					<div className='mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'>
-						<p className='text-red-700 dark:text-red-300 font-medium'>
+					<div className='mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20'>
+						<p className='text-destructive font-medium'>
 							Failed to load orders
 						</p>
-						<p className='mt-1 text-sm text-red-600 dark:text-red-400'>
+						<p className='mt-1 text-sm text-destructive/90'>
 							{ordersError instanceof Error
 								? ordersError.message
 								: String(ordersError)}

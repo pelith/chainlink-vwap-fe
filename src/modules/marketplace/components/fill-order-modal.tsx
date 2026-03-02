@@ -136,47 +136,47 @@ function FillOrderFormContent({
 	});
 
 	return (
-		<div className='relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full p-6'>
+		<div className='relative bg-card rounded-xl shadow-xl w-full p-6'>
 			<DialogHeader className='space-y-0'>
 				<div className='flex items-center justify-between mb-6'>
-					<DialogTitle className='text-2xl font-semibold text-gray-900 dark:text-white'>
+					<DialogTitle className='text-2xl font-semibold text-foreground'>
 						Fill Order #{shortenHash(displayOrder.id)}
 					</DialogTitle>
 				</div>
 			</DialogHeader>
 			{!isVerifying && !matches && diagnosis && (
-				<div className='mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
+				<div className='mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg'>
 					<div className='flex items-start gap-2'>
-						<AlertCircle className='w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5' />
-						<p className='text-sm text-red-800 dark:text-red-200'>
+						<AlertCircle className='w-5 h-5 text-destructive shrink-0 mt-0.5' />
+						<p className='text-sm text-destructive'>
 							{diagnosis}
 						</p>
 					</div>
 				</div>
 			)}
-			<div className='mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg'>
+			<div className='mb-6 p-4 bg-muted/50 rounded-lg'>
 				<div className='flex items-center justify-between mb-2'>
-					<span className='text-sm text-gray-600 dark:text-gray-400'>
+					<span className='text-sm text-muted-foreground'>
 						You are filling
 					</span>
 					<span
 						className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
 							isSellWeth
-								? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-								: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+								? 'bg-destructive/10 text-destructive'
+								: 'bg-green-500/10 text-green-600 dark:text-green-400'
 						}`}
 					>
 						{isSellWeth ? 'Sell WETH' : 'Sell USDC'}
 					</span>
 				</div>
-				<p className='text-lg font-semibold text-gray-900 dark:text-white'>
+				<p className='text-lg font-semibold text-foreground'>
 					{displayOrder.amount} {displayOrder.token}
 				</p>
 			</div>
 			<div className='mb-2'>
 				<label
 					htmlFor='fill-order-deposit-amount'
-					className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+					className='block text-sm font-medium text-foreground mb-2'
 				>
 					Deposit Amount ({depositToken})
 				</label>
@@ -187,13 +187,13 @@ function FillOrderFormContent({
 						value={depositAmount}
 						onChange={(e) => setDepositAmount(e.target.value)}
 						placeholder={`Min: ${formatMinAmount(displayOrder.minAmountOut)}`}
-						className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:bg-gray-900/50 dark:text-white dark:placeholder-gray-400 ${
+						className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition-colors duration-200 bg-background text-foreground placeholder:text-muted-foreground ${
 							hasError
-								? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-								: 'border-gray-300 dark:border-gray-600'
+								? 'border-destructive bg-destructive/10'
+								: 'border-input'
 						}`}
 					/>
-					<span className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium'>
+					<span className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium'>
 						{depositToken}
 					</span>
 				</div>
@@ -203,6 +203,7 @@ function FillOrderFormContent({
 						variant='outline'
 						size='sm'
 						onClick={handleMinimumDeposit}
+						className='transition-colors duration-200 cursor-pointer'
 					>
 						Minimum Deposit
 					</Button>
@@ -212,13 +213,14 @@ function FillOrderFormContent({
 						size='sm'
 						onClick={handleFillToMatchCurrentPrice}
 						disabled={price === undefined || priceLoading}
+						className='transition-colors duration-200 cursor-pointer'
 					>
 						{priceLoading ? 'Loading price…' : 'Fill to Match Current Price'}
 					</Button>
 				</div>
 			</div>
 			{hasMinError && (
-				<div className='mb-4 flex items-start space-x-2 text-red-600 dark:text-red-400 text-sm'>
+				<div className='mb-4 flex items-start space-x-2 text-destructive text-sm'>
 					<AlertCircle className='w-4 h-4 shrink-0 mt-0.5' />
 					<span>
 						Amount must be at least {formatMinAmount(displayOrder.minAmountOut)}{' '}
@@ -227,12 +229,12 @@ function FillOrderFormContent({
 				</div>
 			)}
 			{insufficientBalance && (
-				<div className='mb-4 flex items-start space-x-2 text-red-600 dark:text-red-400 text-sm'>
+				<div className='mb-4 flex items-start space-x-2 text-destructive text-sm'>
 					<AlertCircle className='w-4 h-4 shrink-0 mt-0.5' />
 					<span>Insufficient balance</span>
 				</div>
 			)}
-			<p className='mb-4 text-sm text-gray-500 dark:text-gray-400'>
+			<p className='mb-4 text-sm text-muted-foreground'>
 				Balance:{' '}
 				{balanceData?.isLoading
 					? 'Loading…'
@@ -242,31 +244,31 @@ function FillOrderFormContent({
 				{depositToken}
 			</p>
 			{!hasError && depositAmount === '' && (
-				<p className='mb-4 text-sm text-gray-500 dark:text-gray-400'>
+				<p className='mb-4 text-sm text-muted-foreground'>
 					Minimum deposit: {formatMinAmount(displayOrder.minAmountOut)} {depositToken}
 				</p>
 			)}
-			<div className='mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3'>
+			<div className='mb-6 border border-border rounded-lg p-4 space-y-3'>
 				<div className='flex items-center justify-between'>
-					<div className='flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300'>
-						<Clock className='w-4 h-4 text-blue-600 dark:text-blue-400' />
+					<div className='flex items-center space-x-2 text-sm text-muted-foreground'>
+						<Clock className='w-4 h-4 text-primary' />
 						<span>Lock Duration</span>
 					</div>
-					<span className='font-medium text-gray-900 dark:text-white'>
+					<span className='font-medium text-foreground'>
 						12 Hours
 					</span>
 				</div>
 				<div className='flex items-center justify-between'>
-					<div className='flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300'>
-						<Calendar className='w-4 h-4 text-purple-600 dark:text-purple-400' />
+					<div className='flex items-center space-x-2 text-sm text-muted-foreground'>
+						<Calendar className='w-4 h-4 text-primary' />
 						<span>Est. Settlement</span>
 					</div>
-					<span className='font-medium text-gray-900 dark:text-white'>
+					<span className='font-medium text-foreground'>
 						{settlementFormatted}
 					</span>
 				</div>
 			</div>
-			<div className='mb-6 p-4 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg'>
+			<div className='mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg'>
 				<div className='flex items-start space-x-2'>
 					<Info className='w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5' />
 					<div className='text-sm text-amber-900 dark:text-amber-200'>

@@ -7,12 +7,12 @@ import { DepositFormContainer } from '@/modules/eth-deposit/containers/deposit-f
 
 export function WrapEthPage() {
 	return (
-		<div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
+		<div className='min-h-screen bg-background'>
 			<main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-				<h1 className='text-3xl font-semibold text-gray-900 dark:text-white mb-8'>
+				<h1 className='text-3xl font-semibold text-foreground mb-8'>
 					Wrap ETH
 				</h1>
-				<p className='mb-6 text-gray-600 dark:text-gray-400'>
+				<p className='mb-6 text-muted-foreground'>
 					Deposit native ETH to receive WETH (Wrapped Ether).
 				</p>
 				<DepositFormContainer />

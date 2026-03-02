@@ -3,6 +3,8 @@
  * Receives display values and callbacks from container.
  */
 
+import { Card, CardContent } from '@/components/ui/card';
+
 export interface DepositFormProps {
 	amount: string;
 	onAmountChange: (value: string) => void;
@@ -29,8 +31,9 @@ export function DepositForm({
 	errorMessage,
 }: DepositFormProps) {
 	return (
-		<div className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 sticky top-8 max-w-md'>
-			<h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
+		<Card className='sticky top-8 max-w-md'>
+			<CardContent className='pt-6'>
+			<h2 className='text-xl font-semibold text-foreground mb-6'>
 				Wrap ETH to WETH
 			</h2>
 			{errorMessage ? (
@@ -45,7 +48,7 @@ export function DepositForm({
 				<div>
 					<label
 						htmlFor='deposit-eth-amount'
-						className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+						className='block text-sm font-medium text-foreground mb-2'
 					>
 						Amount
 					</label>
@@ -58,27 +61,27 @@ export function DepositForm({
 							placeholder='0.00'
 							step='any'
 							min='0'
-							className='w-full px-4 py-3 pr-24 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none dark:bg-gray-700 dark:text-white dark:placeholder-gray-400'
+							className='w-full px-4 py-3 pr-24 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent outline-none bg-background text-foreground placeholder:text-muted-foreground transition-colors duration-200'
 						/>
 						<div className='absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2'>
 							<button
 								type='button'
 								onClick={() => onAmountChange(maxAmount)}
-								className='text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 px-2 py-1'
+								className='text-xs font-medium text-primary hover:text-primary/80 px-2 py-1 transition-colors duration-200 cursor-pointer'
 							>
 								Max
 							</button>
-							<span className='text-gray-500 dark:text-gray-400 font-medium'>
+							<span className='text-muted-foreground font-medium'>
 								ETH
 							</span>
 						</div>
 					</div>
-					<p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
+					<p className='mt-2 text-sm text-muted-foreground'>
 						Balance: {ethBalanceDisplay} ETH
 					</p>
 				</div>
-				<div className='p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg'>
-					<p className='text-sm text-gray-600 dark:text-gray-400'>
+				<div className='p-3 bg-muted/50 rounded-lg'>
+					<p className='text-sm text-muted-foreground'>
 						WETH balance: {wethBalanceDisplay} WETH
 					</p>
 				</div>
@@ -86,7 +89,7 @@ export function DepositForm({
 					type='button'
 					onClick={onSubmitClick}
 					disabled={submitDisabled}
-					className='w-full py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed'
+					className='w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-200 font-medium disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer'
 				>
 					{submitIsPending ? (
 						<span className='flex items-center justify-center gap-2'>
@@ -98,6 +101,7 @@ export function DepositForm({
 					)}
 				</button>
 			</div>
-		</div>
+			</CardContent>
+		</Card>
 	);
 }
