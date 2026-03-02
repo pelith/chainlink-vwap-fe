@@ -11,6 +11,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useChainId, useWaitForTransactionReceipt } from 'wagmi';
+import { Card, CardContent } from '@/components/ui/card';
 import { shortenHash } from '@/lib/shorten-hash';
 import { useVwapOraclePrice } from '@/modules/contracts/hooks/use-vwap-oracle-price';
 import { useVwapRfqConstants } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
@@ -35,11 +36,11 @@ export function ReadyToSettleTab({ trades, onSuccess }: ReadyToSettleTabProps) {
 	if (trades.length === 0) {
 		return (
 			<div className='p-12 text-center'>
-				<CheckCircle className='w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4' />
-				<p className='text-gray-500 dark:text-gray-400 text-lg'>
+				<CheckCircle className='w-12 h-12 text-muted-foreground/50 mx-auto mb-4' />
+				<p className='text-muted-foreground text-lg'>
 					No executable trades
 				</p>
-				<p className='text-gray-400 dark:text-gray-500 text-sm mt-2'>
+				<p className='text-muted-foreground/80 text-sm mt-2'>
 					Completed trades will appear here when the locking period ends.
 				</p>
 			</div>
@@ -103,21 +104,19 @@ function SettleTradeCard({
 		if (refundError) toast.error(`Refund failed: ${refundError.message}`);
 	}, [refundError]);
 
-	// Determine if refundable based on contract constants (fallback to 7 days if not loaded)
 	const isRefundable = useMemo(() => {
 		if (trade.status === 'expired_refundable') return true;
-		const grace = refundGrace ?? 604800; // default 7 days
+		const grace = refundGrace ?? 604800;
 		const now = Date.now() / 1000;
 		return trade.endTime.getTime() / 1000 + grace < now;
 	}, [trade, refundGrace]);
 
-	// Calculate aligned time window for oracle: next full hour
 	const alignedEndTime = useMemo(() => {
 		return BigInt(Math.ceil(trade.endTime.getTime() / 1000 / 3600) * 3600);
 	}, [trade.endTime]);
 
 	const alignedStartTime = useMemo(() => {
-		return alignedEndTime - 43200n; // 12 hours
+		return alignedEndTime - 43200n;
 	}, [alignedEndTime]);
 
 	const { vwapPrice, isLoading: isPriceLoading } = useVwapOraclePrice({
@@ -135,7 +134,6 @@ function SettleTradeCard({
 			minute: '2-digit',
 		});
 
-	// Calculation Logic using Utility
 	const settlementData = useMemo(() => {
 		if (!vwapPrice) return null;
 		const priceWithDelta = vwapPrice * (1 + trade.deltaBps / 10000);
@@ -172,43 +170,39 @@ function SettleTradeCard({
 		</span>
 	);
 
-	const borderStyles = isRefundable
-		? 'border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/30'
+	const cardBorderStyles = isRefundable
+		? 'border-l-4 border-l-orange-500 bg-orange-50/50 dark:bg-orange-900/20'
 		: isWaitingForOracle
-			? 'border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10'
-			: 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/30';
+			? 'border-l-4 border-l-amber-500 bg-amber-50/50 dark:bg-amber-900/10'
+			: 'border-l-4 border-l-green-500 bg-green-50/50 dark:bg-green-900/20';
 
 	return (
-		<div
-			className={`border-2 rounded-lg transition-all ${borderStyles}`}
-		>
-			{/* Collapsed header - always visible, clickable */}
+		<Card className={`transition-colors duration-200 ${cardBorderStyles}`}>
 			<button
 				type='button'
 				onClick={() => setIsExpanded((prev) => !prev)}
-				className='w-full flex items-center justify-between p-4 text-left hover:bg-black/5 dark:hover:bg-white/5 rounded-t-lg transition-colors'
+				className='w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 rounded-t-xl transition-colors duration-200 cursor-pointer'
 			>
 				<div className='flex items-center gap-3 flex-wrap'>
-					<h3 className='text-base font-semibold text-gray-900 dark:text-white'>
+					<h3 className='text-base font-semibold text-foreground'>
 						Trade #{shortenHash(trade.id)}
 					</h3>
-					<span className='text-sm text-gray-500 dark:text-gray-400'>
+					<span className='text-sm text-muted-foreground'>
 						{trade.role} · {formatTrimmed(trade.depositedAmount)} {trade.depositedToken} → {trade.targetToken}
 					</span>
 					{statusBadge}
 				</div>
 				{isExpanded ? (
-					<ChevronUp className='w-5 h-5 text-gray-500 shrink-0' />
+					<ChevronUp className='w-5 h-5 text-muted-foreground shrink-0' />
 				) : (
-					<ChevronDown className='w-5 h-5 text-gray-500 shrink-0' />
+					<ChevronDown className='w-5 h-5 text-muted-foreground shrink-0' />
 				)}
 			</button>
 
-			{/* Expanded content */}
 			{isExpanded && (
-				<div className='px-4 pb-4 pt-0 space-y-4 border-t border-gray-200/50 dark:border-gray-700/50 animate-in slide-in-from-top-2 duration-200'>
+				<CardContent className='pt-0 pb-6 space-y-4 border-t border-border/50 animate-in slide-in-from-top-2 duration-200'>
 					{isRefundable ? (
-						<div className='pt-4 p-4 bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 rounded-lg'>
+						<div className='pt-4 p-4 bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-lg'>
 							<p className='text-sm font-medium text-orange-900 dark:text-orange-200 mb-1'>
 								Settlement Window Passed
 							</p>
@@ -217,7 +211,7 @@ function SettleTradeCard({
 							</p>
 						</div>
 					) : isWaitingForOracle ? (
-						<div className='pt-4 p-4 bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-lg'>
+						<div className='pt-4 p-4 bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg'>
 							<p className='text-sm font-medium text-amber-900 dark:text-amber-200 mb-1'>
 								Trade Matured, Pending Price
 							</p>
@@ -226,7 +220,7 @@ function SettleTradeCard({
 							</p>
 						</div>
 					) : (
-						<div className='pt-4 p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg'>
+						<div className='pt-4 p-4 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg'>
 							<p className='text-sm font-medium text-green-900 dark:text-green-200 mb-1'>
 								12H Window Closed
 							</p>
@@ -238,63 +232,62 @@ function SettleTradeCard({
 
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
-							<p className='text-sm text-gray-600 dark:text-gray-400 mb-1'>Deposited</p>
-							<p className='text-lg font-semibold text-gray-900 dark:text-white'>
+							<p className='text-sm text-muted-foreground mb-1'>Deposited</p>
+							<p className='text-lg font-semibold text-foreground'>
 								{formatTrimmed(trade.depositedAmount)} {trade.depositedToken}
 							</p>
 						</div>
 						<div>
-							<p className='text-sm text-gray-600 dark:text-gray-400 mb-1'>Spread Offset (Delta)</p>
-							<p className='text-lg font-semibold text-gray-900 dark:text-white'>
+							<p className='text-sm text-muted-foreground mb-1'>Spread Offset (Delta)</p>
+							<p className='text-lg font-semibold text-foreground'>
 								{trade.deltaBps > 0 ? '+' : ''}{trade.deltaBps} bps
 							</p>
 						</div>
 					</div>
 
 					{!isRefundable && (
-						<div className='bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
+						<div className='bg-primary/5 border border-primary/20 rounded-lg p-4'>
 							{isPriceLoading ? (
 								<div className='flex items-center justify-center py-2'>
-									<Loader2 className='w-5 h-5 animate-spin text-blue-600 mr-2' />
-									<span className='text-blue-700'>Fetching VWAP Price...</span>
+									<Loader2 className='w-5 h-5 animate-spin text-primary mr-2' />
+									<span className='text-primary'>Fetching VWAP Price...</span>
 								</div>
 							) : vwapPrice ? (
 								<div className='flex items-center justify-between'>
 									<div className='flex-1'>
-										<p className='text-sm font-medium text-blue-900 dark:text-blue-200 mb-1'>
+										<p className='text-sm font-medium text-primary/80 mb-1'>
 											12H VWAP for Period
 										</p>
-										<p className='text-2xl font-semibold text-blue-700 dark:text-blue-300'>
+										<p className='text-2xl font-semibold text-primary'>
 											{vwapPrice.toLocaleString()} USDC
 										</p>
 									</div>
 									<div className='text-right flex-1'>
-										<p className='text-sm text-blue-700 dark:text-blue-300 mb-1'>Est. Payout</p>
+										<p className='text-sm text-primary/80 mb-1'>Est. Payout</p>
 										<p className='text-xl font-semibold text-green-600 dark:text-green-400'>
 											{formatTrimmed(estimatedReceived)} {payoutToken}
 										</p>
-										<p className='text-[10px] text-blue-500 mt-1 flex items-center justify-end'>
+										<p className='text-[10px] text-muted-foreground mt-1 flex items-center justify-end'>
 											<Info className='w-3 h-3 mr-1' />
 											Incl. {trade.deltaBps} bps spread
 										</p>
 									</div>
 								</div>
 							) : (
-								<div className='flex items-center text-amber-700 dark:text-amber-300'>
+								<div className='flex items-center text-amber-600 dark:text-amber-400'>
 									<AlertTriangle className='w-5 h-5 mr-2' />
 									<span>Price report not yet published for this period.</span>
 								</div>
 							)}
 							{!isPriceLoading && vwapPrice && estimatedRefund > 0 && (
-								<div className='mt-3 pt-3 border-t border-blue-200 dark:border-blue-800/50 flex justify-between items-center'>
-									<p className='text-xs font-medium text-blue-800 dark:text-blue-300'>Estimated Refund (Unused)</p>
-									<p className='text-sm font-bold text-blue-600 dark:text-blue-400'>+{formatTrimmed(estimatedRefund)} {refundToken}</p>
+								<div className='mt-3 pt-3 border-t border-primary/20 flex justify-between items-center'>
+									<p className='text-xs font-medium text-muted-foreground'>Estimated Refund (Unused)</p>
+									<p className='text-sm font-bold text-primary'>+{formatTrimmed(estimatedRefund)} {refundToken}</p>
 								</div>
 							)}
 						</div>
 					)}
 
-					{/* Button group - only when expanded */}
 					<div className='flex gap-3'>
 						{isRefundable ? (
 							<>
@@ -305,7 +298,7 @@ function SettleTradeCard({
 										refund(trade.id);
 									}}
 									disabled={isRefundPending}
-									className='flex-1 flex items-center justify-center gap-2 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+									className='flex-1 flex items-center justify-center gap-2 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
 								>
 									{isRefundPending ? (
 										<Loader2 className='w-5 h-5 animate-spin' />
@@ -317,7 +310,7 @@ function SettleTradeCard({
 								<button
 									type='button'
 									disabled
-									className='flex-1 py-3 bg-gray-200 dark:bg-gray-700 text-gray-400 rounded-lg cursor-not-allowed font-medium'
+									className='flex-1 py-3 bg-muted text-muted-foreground rounded-lg cursor-not-allowed font-medium'
 								>
 									Settlement Expired
 								</button>
@@ -331,9 +324,9 @@ function SettleTradeCard({
 										settle(trade.id);
 									}}
 									disabled={isSettlePending || isWaitingForOracle}
-									className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg transition-colors font-medium text-lg ${
+									className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg transition-colors duration-200 font-medium text-lg cursor-pointer ${
 										isWaitingForOracle
-											? 'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
+											? 'bg-muted text-muted-foreground cursor-not-allowed'
 											: 'bg-green-600 text-white hover:bg-green-700'
 									} disabled:opacity-50`}
 								>
@@ -355,7 +348,7 @@ function SettleTradeCard({
 								<button
 									type='button'
 									disabled
-									className='flex-1 py-3 bg-gray-200 dark:bg-gray-700 text-gray-400 rounded-lg cursor-not-allowed font-medium'
+									className='flex-1 py-3 bg-muted text-muted-foreground rounded-lg cursor-not-allowed font-medium'
 									title='Refund becomes active if settlement is delayed'
 								>
 									Refund (Locked)
@@ -365,12 +358,12 @@ function SettleTradeCard({
 					</div>
 
 					{!isRefundable && (
-						<p className='text-xs text-gray-500 dark:text-gray-400 text-center'>
+						<p className='text-xs text-muted-foreground text-center'>
 							Note: If Oracle fails or settlement is delayed beyond the grace period, Refund will become active.
 						</p>
 					)}
-				</div>
+				</CardContent>
 			)}
-		</div>
+		</Card>
 	);
 }
