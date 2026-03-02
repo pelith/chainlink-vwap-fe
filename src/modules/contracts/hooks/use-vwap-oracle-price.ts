@@ -23,9 +23,10 @@ export function useVwapOraclePrice(
 		startTime?: bigint;
 		endTime?: bigint;
 		chainId?: number;
+		enabled?: boolean;
 	} = {},
 ) {
-	const { startTime: customStartTime, endTime: customEndTime, chainId } = config;
+	const { startTime: customStartTime, endTime: customEndTime, chainId, enabled: configEnabled = true } = config;
 
 	const configResult = useReadContracts({
 		contracts: [
@@ -45,7 +46,7 @@ export function useVwapOraclePrice(
 			},
 		] as const,
 		query: {
-			enabled: !!contractAddress && !!chainId,
+			enabled: !!contractAddress && !!chainId && configEnabled,
 		},
 	});
 
@@ -79,7 +80,7 @@ export function useVwapOraclePrice(
 		args: [finalStartTime, finalEndTime],
 		chainId,
 		query: {
-			enabled: !!oracleAddress && !!chainId,
+			enabled: !!oracleAddress && !!chainId && configEnabled,
 			select: (priceRaw: bigint | undefined) => {
 				if (priceRaw === undefined)
 					return { vwapPrice: undefined, vwapPriceFormatted: undefined };

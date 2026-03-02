@@ -1,25 +1,18 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
-import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { useTrades } from '@/api/use-trades-api';
 import { HistoryTab } from '@/modules/my-trades/components/history-tab';
 import { LockingTab } from '@/modules/my-trades/components/locking-tab';
 import { ReadyToSettleTab } from '@/modules/my-trades/components/ready-to-settle-tab';
-import { useRefundTrade, useSettleTrade } from '../hooks/use-trade-actions';
 import { mapApiTradeToUITrade } from '../utils/trade-mapper';
 
 export function MyTradesPage() {
 	const { address } = useAccount();
 	// Auto-refresh trades every 30 seconds
-	const { data: apiTrades, isLoading, isError, refetch } = useTrades({ 
+	const { data: apiTrades, isLoading, isError, refetch } = useTrades({
 		address: address as string,
 	});
-
-	const { settle, hash: settleHash, isPending: isSettleSubmitPending, error: settleError, reset: resetSettle } = useSettleTrade();
-	const { refund, hash: refundHash, isPending: isRefundSubmitPending, error: refundError, reset: resetRefund } = useRefundTrade();
-
-	const { isLoading: isSettleConfirming, isSuccess: isSettleSuccess } = useWaitForTransactionReceipt({ hash: settleHash });
-	const { isLoading: isRefundConfirming, isSuccess: isRefundSuccess } = useWaitForTransactionReceipt({ hash: refundHash });
 
 	const [activeTab, setActiveTab] = useState<'locking' | 'settle' | 'history'>(
 		'locking',
@@ -41,34 +34,15 @@ export function MyTradesPage() {
 		),
 	}), [trades]);
 
-	// Refetch trades when a transaction is confirmed on-chain
-	useEffect(() => {
-		if (isSettleSuccess) {
-			toast.success('Trade settled successfully!');
+	const handleTradeSuccess = useCallback(
+		(type: 'settle' | 'refund') => {
+			toast.success(
+				type === 'settle' ? 'Trade settled successfully!' : 'Refund claimed successfully!',
+			);
 			refetch();
-			resetSettle();
-		}
-		if (isRefundSuccess) {
-			toast.success('Refund claimed successfully!');
-			refetch();
-			resetRefund();
-		}
-	}, [isSettleSuccess, isRefundSuccess, refetch, resetSettle, resetRefund]);
-
-	// Error handling
-	useEffect(() => {
-		if (settleError) toast.error(`Settlement failed: ${settleError.message}`);
-		if (refundError) toast.error(`Refund failed: ${refundError.message}`);
-	}, [settleError, refundError]);
-
-	// Optimized: Use useCallback to maintain stable function references
-	const handleSettle = useCallback((tradeId: string) => {
-		settle(tradeId);
-	}, [settle]);
-
-	const handleRefund = useCallback((tradeId: string) => {
-		refund(tradeId);
-	}, [refund]);
+		},
+		[refetch],
+	);
 
 	if (!address) {
 		return (
@@ -152,10 +126,7 @@ export function MyTradesPage() {
 					{activeTab === 'settle' && (
 						<ReadyToSettleTab
 							trades={readyToSettleTrades}
-							onSettle={handleSettle}
-							onRefund={handleRefund}
-							isSettlePending={isSettleSubmitPending || isSettleConfirming}
-							isRefundPending={isRefundSubmitPending || isRefundConfirming}
+							onSuccess={handleTradeSuccess}
 						/>
 					)}
 					{activeTab === 'history' && <HistoryTab trades={historyTrades} />}
