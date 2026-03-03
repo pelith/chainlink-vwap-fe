@@ -186,11 +186,20 @@ function SettleTradeCard({
 			>
 				<div className='flex items-center gap-3 flex-wrap'>
 					<h3 className='text-base font-semibold text-foreground'>
-						Trade #{shortenHash(trade.id)}
-					</h3>
-					<span className='text-sm text-muted-foreground'>
 						{trade.role} · {formatTrimmed(trade.depositedAmount)} {trade.depositedToken} → {trade.targetToken}
-					</span>
+					</h3>
+					<button
+						type='button'
+						onClick={(e) => {
+							e.stopPropagation();
+							navigator.clipboard.writeText(trade.id);
+							toast.success('Trade ID copied');
+						}}
+						title='Copy trade ID'
+						className='text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer'
+					>
+						#{shortenHash(trade.id)}
+					</button>
 					{statusBadge}
 				</div>
 				{isExpanded ? (

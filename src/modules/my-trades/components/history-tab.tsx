@@ -2,6 +2,7 @@ import { Calendar, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Trade } from '@/modules/my-trades/types/my-trades.types';
 
 interface HistoryTabProps {
@@ -71,8 +72,9 @@ export function HistoryTab({ trades }: HistoryTabProps) {
 					</CardContent>
 				</Card>
 			</div>
-			<div className='overflow-x-auto rounded-lg border'>
-				<table className='min-w-full divide-y divide-border'>
+			<div className='rounded-lg border w-full h-[70vh] min-h-[320px]'>
+				<ScrollArea className='h-full w-full'>
+					<table className='min-w-full divide-y divide-border'>
 					<thead className='bg-muted/50'>
 						<tr>
 							<th className='px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider'>
@@ -107,6 +109,7 @@ export function HistoryTab({ trades }: HistoryTabProps) {
 						))}
 					</tbody>
 				</table>
+				</ScrollArea>
 			</div>
 		</div>
 	);

@@ -92,7 +92,7 @@ export function MyTradesPage() {
 				<div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
 					<Card className='cursor-default transition-colors duration-200 hover:bg-muted/50'>
 						<CardContent className='pt-6'>
-							<p className='text-sm text-muted-foreground mb-1'>Locking (In Progress)</p>
+							<p className='text-sm text-muted-foreground mb-1'>Locking</p>
 							<p className='text-2xl font-semibold text-foreground'>{lockingTrades.length}</p>
 						</CardContent>
 					</Card>
@@ -118,7 +118,7 @@ export function MyTradesPage() {
 								value='locking'
 								className='rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-colors duration-200 cursor-pointer'
 							>
-								Locking (In Progress)
+								Locking
 								{lockingTrades.length > 0 && (
 									<span className='ml-2 px-2 py-0.5 bg-primary/20 text-primary rounded-full text-xs font-medium'>
 										{lockingTrades.length}
