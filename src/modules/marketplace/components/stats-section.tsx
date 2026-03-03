@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { useChainlinkEthPrice } from '@/modules/contracts/hooks/use-chainlink-eth-price';
 import { useVwapOraclePrice } from '@/modules/contracts/hooks/use-vwap-oracle-price';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function StatsSection() {
 	const chainId = TARGET_CHAIN_ID;
@@ -44,7 +45,23 @@ export function StatsSection() {
 							<h3 className='text-sm text-muted-foreground'>
 								12H Historical VWAP
 							</h3>
-							<Info className='w-5 h-5 text-primary' />
+							<Tooltip>
+							<TooltipTrigger asChild>
+								<button
+									type='button'
+									className='shrink-0 mt-0.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
+									aria-label='VWAP calculation details'
+								>
+									<Info className='w-5 h-5 text-primary' />
+								</button>
+							</TooltipTrigger>
+							<TooltipContent side='top' className='max-w-sm'>
+								Simultaneously fetches 12-hour trading data from Binance, OKX,
+								Bybit, Coinbase, and Bitget, calculates a volume-weighted
+								average price, and takes the median after filtering out
+								anomalous data.
+							</TooltipContent>
+						</Tooltip>
 						</div>
 						<div className='flex items-baseline space-x-2'>
 							<span className='text-3xl font-semibold text-foreground'>

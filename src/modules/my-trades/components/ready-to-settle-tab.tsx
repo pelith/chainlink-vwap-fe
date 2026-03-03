@@ -15,6 +15,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { shortenHash } from '@/lib/shorten-hash';
 import { useVwapOraclePrice } from '@/modules/contracts/hooks/use-vwap-oracle-price';
 import { useVwapRfqConstants } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
+import { parseVwapContractError } from '@/modules/marketplace/utils/parse-fill-error';
 import type { Trade } from '@/modules/my-trades/types/my-trades.types';
 import { useRefundTrade, useSettleTrade } from '../hooks/use-trade-actions';
 import { calculateSettlement } from '../utils/settlement-math';
@@ -97,11 +98,11 @@ function SettleTradeCard({
 	}, [isRefundSuccess, onSuccess, resetRefund]);
 
 	useEffect(() => {
-		if (settleError) toast.error(`Settlement failed: ${settleError.message}`);
+		if (settleError) toast.error(parseVwapContractError(settleError));
 	}, [settleError]);
 
 	useEffect(() => {
-		if (refundError) toast.error(`Refund failed: ${refundError.message}`);
+		if (refundError) toast.error(parseVwapContractError(refundError));
 	}, [refundError]);
 
 	const isRefundable = useMemo(() => {

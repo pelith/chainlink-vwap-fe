@@ -4,7 +4,6 @@
 
 import type { Address } from 'viem';
 import { useWriteContract } from 'wagmi';
-import { getFaucetClaimSignature } from '@/api/faucet';
 import { USDCFaucetAbi } from '@/modules/contracts/constants/abis/USDCFaucet';
 import { getFaucetAddress } from '@/modules/contracts/constants/faucet-address';
 
@@ -26,12 +25,11 @@ export function useClaimFaucet({ chainId, address }: UseClaimFaucetParams) {
 		if (!address) throw new Error('Wallet address is required');
 		if (!faucetAddress) throw new Error('Faucet not available on this network');
 
-		const sig = await getFaucetClaimSignature(address);
 		return writeContractAsync({
 			abi: USDCFaucetAbi,
 			address: faucetAddress as Address,
 			functionName: 'claimToken',
-			args: [sig.v, sig.r, sig.s],
+			args: [],
 			chainId,
 		});
 	};

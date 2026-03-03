@@ -3,6 +3,7 @@ import { useWriteContract } from 'wagmi';
 import { env } from '@/env';
 import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
+import { toOrderHashBytes32 } from '@/modules/marketplace/utils/fill-order-params';
 
 export function useSettleTrade() {
 	const {
@@ -20,11 +21,13 @@ export function useSettleTrade() {
 	const settle = (tradeId: string) => {
 		if (!vwapAddress || !tradeId) return;
 
+		const tradeIdBytes32 = toOrderHashBytes32(tradeId);
+
 		mutate({
 			abi: VWAPRFQSpotAbi,
 			address: vwapAddress as Address,
 			functionName: 'settle',
-			args: [tradeId as Address],
+			args: [tradeIdBytes32],
 			chainId: TARGET_CHAIN_ID,
 		});
 	};
@@ -33,11 +36,13 @@ export function useSettleTrade() {
 		if (!vwapAddress) throw new Error('VWAP contract address is not configured');
 		if (!tradeId) throw new Error('Trade ID is required');
 
+		const tradeIdBytes32 = toOrderHashBytes32(tradeId);
+
 		return mutateAsync({
 			abi: VWAPRFQSpotAbi,
 			address: vwapAddress as Address,
 			functionName: 'settle',
-			args: [tradeId as Address],
+			args: [tradeIdBytes32],
 			chainId: TARGET_CHAIN_ID,
 		});
 	};
@@ -68,11 +73,12 @@ export function useRefundTrade() {
 
 	const refund = (tradeId: string) => {
 		if (!vwapAddress || !tradeId) return;
+		const tradeIdBytes32 = toOrderHashBytes32(tradeId);
 		mutate({
 			abi: VWAPRFQSpotAbi,
 			address: vwapAddress as Address,
 			functionName: 'refund',
-			args: [tradeId as Address],
+			args: [tradeIdBytes32],
 			chainId: TARGET_CHAIN_ID,
 		});
 	};
@@ -81,11 +87,13 @@ export function useRefundTrade() {
 		if (!vwapAddress) throw new Error('VWAP contract address is not configured');
 		if (!tradeId) throw new Error('Trade ID is required');
 
+		const tradeIdBytes32 = toOrderHashBytes32(tradeId);
+
 		return mutateAsync({
 			abi: VWAPRFQSpotAbi,
 			address: vwapAddress as Address,
 			functionName: 'refund',
-			args: [tradeId as Address],
+			args: [tradeIdBytes32],
 			chainId: TARGET_CHAIN_ID,
 		});
 	};

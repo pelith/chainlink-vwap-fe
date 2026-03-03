@@ -1,7 +1,3 @@
-/**
- * Parses contract revert errors from fill() to surface user-friendly messages.
- */
-
 import { decodeErrorResult } from 'viem';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 
@@ -33,10 +29,10 @@ function extractRevertData(err: unknown): `0x${string}` | null {
 }
 
 /**
- * Parses a fill() revert and returns a user-friendly message.
- * Returns the original error message if parsing fails.
+ * Parses a VWAPRFQSpot contract revert and returns a user-friendly message.
+ * Use for fill(), settle(), refund(), cancelOrderHash(), etc.
  */
-export function parseFillError(err: unknown): string {
+export function parseVwapContractError(err: unknown): string {
 	const msg = err instanceof Error ? err.message : String(err);
 	if (msg.toLowerCase().includes('user rejected') || msg.includes('User denied')) {
 		return 'Transaction rejected by user';
@@ -52,9 +48,18 @@ export function parseFillError(err: unknown): string {
 			abi: VWAPRFQSpotAbi,
 			data,
 		});
-		const msg = ERROR_MESSAGES[errorName];
-		return msg ?? `Contract error: ${errorName}`;
+		const friendly = ERROR_MESSAGES[errorName];
+		return friendly ?? `Contract error: ${errorName}`;
 	} catch {
 		return err instanceof Error ? err.message : String(err);
 	}
 }
+
+/**
+ * Parses a fill() revert and returns a user-friendly message.
+ * Returns the original error message if parsing fails.
+ */
+export function parseFillError(err: unknown): string {
+	return parseVwapContractError(err);
+}
+
