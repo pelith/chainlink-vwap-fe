@@ -1,6 +1,13 @@
-import { Link, useRouterState } from '@tanstack/react-router';
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react';
-import { Moon, Sun, Wallet } from 'lucide-react';
+import { Link, useRouterState } from '@tanstack/react-router';
+import { Check, Moon, Palette, Sun, Wallet } from 'lucide-react';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { THEMES } from '@/config/themes';
 import { useTheme } from '@/contexts/theme-context';
 
 function shortenAddress(address: string, chars = 4): string {
@@ -8,7 +15,7 @@ function shortenAddress(address: string, chars = 4): string {
 }
 
 export default function Header() {
-	const { isDarkMode, toggleDarkMode } = useTheme();
+	const { theme, setTheme, isDarkMode, toggleDarkMode } = useTheme();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const { open } = useAppKit();
 	const { address, isConnected } = useAppKitAccount();
@@ -16,15 +23,15 @@ export default function Header() {
 	const isActive = (path: string) => pathname === path;
 
 	return (
-		<header className='bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700'>
+		<header className='bg-background border-b border-border transition-colors'>
 			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
 				<div className='flex items-center justify-between h-16'>
 					<div className='flex items-center'>
 						<Link to='/' className='flex items-center space-x-2'>
-							<div className='w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-400 rounded-lg flex items-center justify-center'>
-								<span className='text-white font-bold text-lg'>V</span>
+							<div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm'>
+								<span className='text-primary-foreground font-bold text-lg'>V</span>
 							</div>
-							<span className='font-semibold text-xl text-gray-900 dark:text-white'>
+							<span className='font-semibold text-xl text-foreground'>
 								VWAP Spot
 							</span>
 						</Link>
@@ -34,8 +41,8 @@ export default function Header() {
 							to='/'
 							className={`px-1 py-2 font-medium transition-colors ${
 								isActive('/')
-									? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-									: 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+									? 'text-primary border-b-2 border-primary'
+									: 'text-muted-foreground hover:text-foreground'
 							}`}
 						>
 							Market
@@ -44,8 +51,8 @@ export default function Header() {
 							to='/my-quotes'
 							className={`px-1 py-2 font-medium transition-colors ${
 								isActive('/my-quotes')
-									? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-									: 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+									? 'text-primary border-b-2 border-primary'
+									: 'text-muted-foreground hover:text-foreground'
 							}`}
 						>
 							My Quotes
@@ -54,8 +61,8 @@ export default function Header() {
 							to='/my-trades'
 							className={`px-1 py-2 font-medium transition-colors ${
 								isActive('/my-trades')
-									? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-									: 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+									? 'text-primary border-b-2 border-primary'
+									: 'text-muted-foreground hover:text-foreground'
 							}`}
 						>
 							My Trades
@@ -64,18 +71,46 @@ export default function Header() {
 							to='/preset'
 							className={`px-1 py-2 font-medium transition-colors ${
 								isActive('/preset')
-									? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-									: 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+									? 'text-primary border-b-2 border-primary'
+									: 'text-muted-foreground hover:text-foreground'
 							}`}
 						>
 							Preset
 						</Link>
 					</nav>
 					<div className='flex items-center space-x-4'>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<button
+									type='button'
+									className='p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted'
+									aria-label='Change theme'
+								>
+									<Palette className='w-5 h-5' />
+								</button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align='end' className='w-56'>
+								{Object.values(THEMES).map((themeOption) => (
+									<DropdownMenuItem
+										key={themeOption.id}
+										onClick={() => setTheme(themeOption.id)}
+										className='flex items-center justify-between cursor-pointer'
+									>
+										<span className='flex items-center gap-2'>
+											<span>{themeOption.icon}</span>
+											<span>{themeOption.name}</span>
+										</span>
+										{theme === themeOption.id && (
+											<Check className='w-4 h-4 text-primary' />
+										)}
+									</DropdownMenuItem>
+								))}
+							</DropdownMenuContent>
+						</DropdownMenu>
 						<button
 							type='button'
 							onClick={toggleDarkMode}
-							className='p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800'
+							className='p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted'
 							aria-label='Toggle dark mode'
 						>
 							{isDarkMode ? (
@@ -84,9 +119,9 @@ export default function Header() {
 								<Moon className='w-5 h-5' />
 							)}
 						</button>
-						<div className='flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg'>
+						<div className='flex items-center space-x-2 px-3 py-2 bg-muted rounded-lg'>
 							<div className='w-2 h-2 bg-green-500 rounded-full' />
-							<span className='text-sm text-gray-700 dark:text-gray-300'>
+							<span className='text-sm text-muted-foreground'>
 								Sepolia
 							</span>
 						</div>
@@ -95,7 +130,7 @@ export default function Header() {
 							onClick={() =>
 								open(isConnected ? { view: 'Account' } : { view: 'Connect' })
 							}
-							className='flex items-center space-x-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors'
+							className='flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all shadow-sm'
 						>
 							<Wallet className='w-4 h-4' />
 							<span>
