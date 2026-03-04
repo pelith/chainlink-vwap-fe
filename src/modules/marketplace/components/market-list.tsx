@@ -32,7 +32,7 @@ export function MarketList({
 					size='sm'
 					onClick={onRefresh}
 					disabled={isRefreshing}
-					className='gap-2 transition-colors duration-200 cursor-pointer'
+					className='gap-2 bg-background/80 backdrop-blur-sm disabled:bg-background disabled:backdrop-blur-none transition-colors duration-200 cursor-pointer'
 				>
 					<RefreshCw
 						className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}

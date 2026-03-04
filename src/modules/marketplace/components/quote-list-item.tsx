@@ -41,7 +41,7 @@ export function QuoteListItem({ order, onFillClick }: QuoteListItemProps) {
 					onFillClick(order);
 				}
 			}}
-			className='transition-colors duration-200 hover:bg-muted/30 cursor-pointer'
+		className='transition-colors duration-200 hover:bg-muted/30 hover:backdrop-blur-sm cursor-pointer'
 		>
 			<CardContent className='p-5'>
 				<div className='flex items-center gap-6'>
