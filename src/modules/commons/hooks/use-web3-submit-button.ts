@@ -20,6 +20,7 @@ export type Web3SubmitStep =
 
 export interface AllowanceConfig {
 	tokenAddress: string;
+	/** Minimum required allowance for this action. Used only to decide if Approve step is shown (allowance < amountRaw). Actual approve is always maxUint256. */
 	amountRaw: bigint;
 	spender: string;
 	tokenSymbol: string;
@@ -91,7 +92,7 @@ export function useWeb3SubmitButton({
 	} = useApproveToken({
 		tokenAddress: allowanceConfig?.tokenAddress,
 		spender: allowanceConfig?.spender,
-		amount: allowanceConfig?.amountRaw,
+		amount: undefined,
 		chainId,
 	});
 
