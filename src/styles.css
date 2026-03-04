@@ -290,6 +290,29 @@ code {
     @apply text-foreground;
     position: relative;
     background-color: transparent;
+    min-height: 100vh;
+  }
+
+  /* Global background image - Light Mode */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/image-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Global background image - Dark Mode */
+  .dark body::before {
+    background-image: url('/image-bg-dark.png');
   }
 
   /* Hide number input spinner buttons */
@@ -303,26 +326,8 @@ code {
   }
 }
 
-/* ===== Bamboo Theme - Background Image ===== */
-/* Only applied when theme is 'bamboo' */
-body.theme-bamboo::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('/bamboo-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  opacity: 1;
-  z-index: -2;
-  pointer-events: none;
-}
-
-/* Semi-transparent white overlay for light mode */
+/* ===== Bamboo Theme - Background Image (Legacy - Now using global background) ===== */
+/* Bamboo theme can add overlay effects if needed */
 body.theme-bamboo::after {
   content: '';
   position: fixed;
@@ -330,19 +335,14 @@ body.theme-bamboo::after {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.1);
   z-index: -1;
   pointer-events: none;
 }
 
-/* Darker background in dark mode */
-.dark body.theme-bamboo::before {
-  filter: brightness(0.5);
-}
-
-/* Dark overlay for dark mode */
+/* Dark overlay for dark mode bamboo */
 .dark body.theme-bamboo::after {
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 /* ===== Button Styles ===== */
