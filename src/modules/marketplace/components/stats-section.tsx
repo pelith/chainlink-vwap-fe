@@ -1,16 +1,16 @@
 import { Info } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { TARGET_CHAIN_ID } from '@/lib/constants';
 import { useChainlinkEthPrice } from '@/modules/contracts/hooks/use-chainlink-eth-price';
 import { useVwapOraclePrice } from '@/modules/contracts/hooks/use-vwap-oracle-price';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function StatsSection() {
 	const chainId = TARGET_CHAIN_ID;
 	const { priceFormatted, isLoading: chainlinkLoading } =
 		useChainlinkEthPrice(chainId);
 	const { vwapPriceFormatted, isLoading: vwapLoading } =
-		useVwapOraclePrice(chainId);
+		useVwapOraclePrice({chainId});
 
 	const marketPriceDisplay =
 		chainlinkLoading || priceFormatted === undefined ? '—' : priceFormatted;

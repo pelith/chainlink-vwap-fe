@@ -1,6 +1,8 @@
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { Check, Moon, Palette, Sun, Wallet } from 'lucide-react';
+import Logo from '@/assets/logo.png';
+import LogoDark from '@/assets/logo-dark.png';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -28,12 +30,7 @@ export default function Header() {
 				<div className='flex items-center justify-between h-16'>
 					<div className='flex items-center'>
 						<Link to='/' className='flex items-center space-x-2'>
-							<div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm'>
-								<span className='text-primary-foreground font-bold text-lg'>V</span>
-							</div>
-							<span className='font-semibold text-xl text-foreground'>
-								VWAP Spot
-							</span>
+							<img src={isDarkMode ? LogoDark : Logo} alt='VWAP Spot' className='h-10' />
 						</Link>
 					</div>
 					<nav className='hidden md:flex space-x-8'>
