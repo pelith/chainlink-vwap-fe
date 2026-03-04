@@ -124,6 +124,7 @@ export function CreateQuoteFormContainer({
 				amountBn.div(marketPriceBn).times(0.8).toFixed(receiveDecimals),
 			);
 		}
+		form.trigger();
 	}, [form, price, direction]);
 
 	const balanceDisplayText = balanceData?.isLoading
