@@ -1,5 +1,5 @@
 import { useAppKitAccount } from '@reown/appkit/react';
-import { AlertCircle, Calendar, Clock, Info } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Calendar, Clock, Info, Loader2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { parseUnits } from 'viem';
 import type { Order as ApiOrder } from '@/api/api.types';
@@ -17,6 +17,7 @@ import { shortenHash } from '@/lib/shorten-hash';
 import { useModalRegister } from '@/modules/commons/hooks/modal/use-modal-register';
 import { Web3SubmitButton } from '@/modules/commons/components/web3-submit-button';
 import { useChainlinkEthPrice } from '@/modules/contracts/hooks/use-chainlink-eth-price';
+import { useTokenAllowance } from '@/modules/contracts/hooks/use-token-allowance';
 import { useTokenInfoAndBalance } from '@/modules/contracts/hooks/use-token-info-and-balance';
 import { useVwapRfqTokenAddresses } from '@/modules/contracts/hooks/use-vwap-rfq-token-addresses';
 import { useVerifyOrderHash } from '@/modules/marketplace/hooks/use-verify-order-hash';
@@ -71,6 +72,36 @@ function FillOrderFormContent({
 	const balanceStr =
 		typeof balanceData?.balance === 'string' ? balanceData.balance : null;
 
+	const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS;
+	const makerTokenAddress = isSellWeth ? weth : usdc;
+	const requiredAmountRaw = BigInt(apiOrder.amount_in);
+	const makerBalanceData = useTokenInfoAndBalance(
+		apiOrder.maker,
+		makerTokenAddress ?? '',
+		chainId,
+	);
+	const { allowance: makerAllowanceRaw, isLoading: isMakerAllowanceLoading } =
+		useTokenAllowance(
+			apiOrder.maker,
+			makerTokenAddress,
+			contractAddress ?? undefined,
+			chainId,
+		);
+	const isMakerCapacityLoading =
+		makerBalanceData?.isLoading === true || isMakerAllowanceLoading;
+	const makerBalanceRaw =
+		makerBalanceData && 'balanceRaw' in makerBalanceData
+			? (makerBalanceData.balanceRaw as bigint | undefined)
+			: undefined;
+	const makerBalanceSufficient =
+		!isMakerCapacityLoading &&
+		makerBalanceRaw != null &&
+		makerBalanceRaw >= requiredAmountRaw;
+	const makerAllowanceSufficient =
+		!isMakerCapacityLoading &&
+		makerAllowanceRaw != null &&
+		makerAllowanceRaw >= requiredAmountRaw;
+
 	const depositAmountBn = parseToBigNumber(depositAmount);
 	const balanceBn = parseToBigNumber(balanceStr ?? '0');
 	const minAmountBn = parseToBigNumber(displayOrder.minAmountOut);
@@ -105,7 +136,6 @@ function FillOrderFormContent({
 		depositAmount !== '' && depositAmountBn.gt(balanceBn);
 	const hasError = hasMinError || insufficientBalance;
 
-	const contractAddress = env.VITE_VWAP_CONTRACT_ADDRESS;
 	const allowanceConfig = (() => {
 		if (!contractAddress || !depositAmount || depositAmountBn.lte(0))
 			return null;
@@ -154,6 +184,39 @@ function FillOrderFormContent({
 					</div>
 				</div>
 			)}
+			{isMakerCapacityLoading && (
+				<div className='mb-4 p-4 bg-muted/50 border border-border rounded-lg'>
+					<div className='flex items-center gap-2'>
+						<Loader2 className='w-5 h-5 animate-spin text-muted-foreground shrink-0' />
+						<p className='text-sm text-muted-foreground'>
+							Checking maker capacity…
+						</p>
+					</div>
+				</div>
+			)}
+			{!isMakerCapacityLoading && !makerBalanceSufficient && (
+				<div className='mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg'>
+					<div className='flex items-start gap-2'>
+						<AlertCircle className='w-5 h-5 text-destructive shrink-0 mt-0.5' />
+						<p className='text-sm text-destructive'>
+							Maker has insufficient balance to fulfill this order.
+						</p>
+					</div>
+				</div>
+			)}
+			{!isMakerCapacityLoading &&
+				makerBalanceSufficient &&
+				!makerAllowanceSufficient && (
+					<div className='mb-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg'>
+						<div className='flex items-start gap-2'>
+							<AlertTriangle className='w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5' />
+							<p className='text-sm text-amber-900 dark:text-amber-200'>
+								Maker has not approved sufficient allowance; fill may fail at
+								settlement.
+							</p>
+						</div>
+					</div>
+				)}
 			<div className='mb-6 p-4 bg-muted/50 rounded-lg'>
 				<div className='flex items-center justify-between mb-2'>
 					<span className='text-sm text-muted-foreground'>
@@ -287,7 +350,12 @@ function FillOrderFormContent({
 				submitLabel='Confirm Fill'
 				submitPendingLabel='Confirming…'
 				isSubmitPending={isSubmitPending}
-				formDisabled={hasError || !depositAmount || depositAmountBn.lt(minAmountBn)}
+				formDisabled={
+					hasError ||
+					!depositAmount ||
+					depositAmountBn.lt(minAmountBn) ||
+					(!isMakerCapacityLoading && !makerBalanceSufficient)
+				}
 				requiredChainId={chainId}
 				className='w-full py-6'
 			/>
