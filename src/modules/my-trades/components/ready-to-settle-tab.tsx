@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { useChainId, useWaitForTransactionReceipt } from 'wagmi';
+import { useChainId, useBlock, useWaitForTransactionReceipt } from 'wagmi';
 import { Card, CardContent } from '@/components/ui/card';
 import { shortenHash } from '@/lib/shorten-hash';
 import { useVwapOraclePrice } from '@/modules/contracts/hooks/use-vwap-oracle-price';
@@ -33,6 +33,8 @@ const formatTrimmed = (n: number) => {
 export function ReadyToSettleTab({ trades, onSuccess }: ReadyToSettleTabProps) {
 	const chainId = useChainId();
 	const { refundGrace } = useVwapRfqConstants(chainId);
+	const { data: block } = useBlock({ watch: true });
+	const blockTimestamp = block ? Number(block.timestamp) : null;
 
 	if (trades.length === 0) {
 		return (
@@ -56,6 +58,7 @@ export function ReadyToSettleTab({ trades, onSuccess }: ReadyToSettleTabProps) {
 					trade={trade}
 					onSuccess={onSuccess}
 					refundGrace={refundGrace}
+					blockTimestamp={blockTimestamp}
 				/>
 			))}
 		</div>
@@ -66,10 +69,12 @@ function SettleTradeCard({
 	trade,
 	onSuccess,
 	refundGrace,
+	blockTimestamp,
 }: {
 	trade: Trade;
 	onSuccess: (type: 'settle' | 'refund') => void;
 	refundGrace?: number;
+	blockTimestamp: number | null;
 }) {
 	const chainId = useChainId();
 	const [isExpanded, setIsExpanded] = useState(false);
@@ -108,9 +113,9 @@ function SettleTradeCard({
 	const isRefundable = useMemo(() => {
 		if (trade.status === 'expired_refundable') return true;
 		const grace = refundGrace ?? 604800;
-		const now = Date.now() / 1000;
+		const now = blockTimestamp ?? (Date.now() / 1000);
 		return trade.endTime.getTime() / 1000 + grace < now;
-	}, [trade, refundGrace]);
+	}, [trade, refundGrace, blockTimestamp]);
 
 	const alignedEndTime = useMemo(() => {
 		return BigInt(Math.ceil(trade.endTime.getTime() / 1000 / 3600) * 3600);

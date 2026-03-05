@@ -42,6 +42,7 @@ function generateSalt(): bigint {
  */
 export function formDataToOrderParams(
 	formData: CreateQuoteFormData,
+	blockTimestamp?: number,
 ): OrderParams {
 	const deltaBps = Number.parseInt(formData.delta, 10);
 	if (Number.isNaN(deltaBps)) {
@@ -61,8 +62,10 @@ export function formDataToOrderParams(
 		minAmountOutDecimals,
 	);
 	const salt = generateSalt();
+	
+	const currentTimestamp = blockTimestamp ?? Math.floor(Date.now() / 1000);
 	const deadline =
-		Math.floor(Date.now() / 1000) +
+		currentTimestamp +
 		Number.parseInt(formData.deadline, 10) * 3600;
 
 	return {

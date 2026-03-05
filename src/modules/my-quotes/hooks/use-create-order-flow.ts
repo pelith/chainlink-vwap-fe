@@ -6,7 +6,7 @@
 import { useAppKitAccount } from '@reown/appkit/react';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
-import { useWalletClient } from 'wagmi';
+import { usePublicClient, useWalletClient } from 'wagmi';
 import { useCreateOrder } from '@/api/use-orders-api';
 import { env } from '@/env';
 import { TARGET_CHAIN_ID } from '@/lib/constants';
@@ -22,6 +22,7 @@ export type CreateOrderPhase = 'idle' | 'signing' | 'submitting';
 export function useCreateOrderFlow() {
 	const { address } = useAppKitAccount();
 	const { data: walletClient } = useWalletClient();
+	const publicClient = usePublicClient({ chainId: TARGET_CHAIN_ID });
 	const { mutateAsync: createOrderMutate } = useCreateOrder();
 	const [phase, setPhase] = useState<CreateOrderPhase>('idle');
 
@@ -42,7 +43,17 @@ export function useCreateOrderFlow() {
 			}
 
 			try {
-				const params = formDataToOrderParams(formData);
+				let blockTimestamp: number | undefined;
+				try {
+					if (publicClient) {
+						const block = await publicClient.getBlock();
+						blockTimestamp = Number(block.timestamp);
+					}
+				} catch (err) {
+					console.warn('Failed to fetch block timestamp, falling back to local time', err);
+				}
+
+				const params = formDataToOrderParams(formData, blockTimestamp);
 
 				const orderMessage = {
 					maker: address as `0x${string}`,

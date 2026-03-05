@@ -6,7 +6,6 @@
 import { useMemo } from 'react';
 import type { Address } from 'viem';
 import { useReadContracts } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
 import { env } from '@/env';
 import { VWAPRFQSpotAbi } from '@/modules/contracts/constants/abis/VWAPRFQSpot';
 import {
@@ -14,7 +13,7 @@ import {
 	toOrderHashBytes32,
 } from '@/modules/marketplace/utils/fill-order-params';
 
-const CHAIN_ID = sepolia.id;
+const CHAIN_ID = env.VITE_TARGET_CHAIN_ID;
 
 export type OrderOnChainStatus = 'available' | 'filled' | 'cancelled';
 
