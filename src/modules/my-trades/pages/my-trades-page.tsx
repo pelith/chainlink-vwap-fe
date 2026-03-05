@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useAccount } from 'wagmi';
 import { useTrades } from '@/api/use-trades-api';

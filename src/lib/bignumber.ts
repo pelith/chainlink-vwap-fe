@@ -44,8 +44,11 @@ function formatNumberWithCommas(n: string): string {
 	return parts.join('.').replace(/\.?0+$/, '');
 }
 
+const LARGE_NUMBER_THRESHOLD = 100_000_000;
+
 /**
  * Format amount for display. Use for token balances, amounts.
+ * When value > 100,000,000, returns ">100,000,000" to avoid exaggerated display.
  */
 export function formatCommonNumber(
 	amount: BigNumber.Value | string | number | undefined,
@@ -56,6 +59,7 @@ export function formatCommonNumber(
 	if (processAmount.isNaN()) return '-';
 	if (processAmount.isZero()) return '0';
 	if (processAmount.lt(0.000001)) return '< 0.000001';
+	if (processAmount.gt(LARGE_NUMBER_THRESHOLD)) return '>100,000,000';
 	return formatNumberWithCommas(
 		processAmount.toFixed(getCommonDecimal(processAmount)),
 	);

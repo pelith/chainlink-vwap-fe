@@ -169,7 +169,7 @@ export function RiskMonitor({ orders, onIncreaseAllowanceClick }: RiskMonitorPro
 								<p className='text-2xl font-semibold text-foreground mt-1'>
 									{totalExposureWETH.toFixed(2)} /{' '}
 									{allowanceWETH != null
-										? allowanceWETH.toFixed(2)
+										? formatCommonNumber(allowanceWETH.toString())
 										: '—'}
 								</p>
 								<p className='text-xs text-muted-foreground mt-0.5'>
@@ -242,7 +242,7 @@ export function RiskMonitor({ orders, onIncreaseAllowanceClick }: RiskMonitorPro
 								<p className='text-2xl font-semibold text-foreground mt-1'>
 									{totalExposureUSDC.toLocaleString()} /{' '}
 									{allowanceUSDC != null
-										? allowanceUSDC.toLocaleString()
+										? formatCommonNumber(allowanceUSDC.toString())
 										: '—'}
 								</p>
 								<p className='text-xs text-muted-foreground mt-0.5'>
