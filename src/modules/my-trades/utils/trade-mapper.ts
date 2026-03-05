@@ -1,6 +1,7 @@
 import { formatUnits } from 'viem';
 import type { Trade as ApiTrade } from '@/api/api.types';
 import type { Trade as UITrade } from '../types/my-trades.types';
+import { calculateSettlement } from './settlement-math';
 
 const WETH_DECIMALS = 18;
 const USDC_DECIMALS = 6;
@@ -11,10 +12,36 @@ const safeFormatUnits = (value: string | undefined | null, decimals: number): nu
 	if (!value || value === '' || value === '0') return undefined;
 	try {
 		return Number(formatUnits(BigInt(value), decimals));
-	} catch (e) {
+	} catch {
 		return undefined;
 	}
 };
+
+/**
+ * Computes receivedAmount for settled trades using settlement math.
+ * Avoids API maker_payout/taker_payout which may have format/scale issues from the Indexer.
+ */
+function computeReceivedAmount(apiTrade: ApiTrade, role: 'Maker' | 'Taker'): number | undefined {
+	const status = apiTrade.display_status;
+	if (status !== 'settled') return undefined;
+
+	const finalVWAP = safeFormatUnits(apiTrade.settlement_price, VWAP_DECIMALS);
+	if (finalVWAP == null) return undefined;
+
+	const makerAmountIn = Number(formatUnits(BigInt(apiTrade.maker_amount_in), apiTrade.maker_is_sell_eth ? WETH_DECIMALS : USDC_DECIMALS));
+	const takerDeposit = Number(formatUnits(BigInt(apiTrade.taker_deposit), apiTrade.maker_is_sell_eth ? USDC_DECIMALS : WETH_DECIMALS));
+	const priceWithDelta = finalVWAP * (1 + apiTrade.delta_bps / 10000);
+
+	const { payout } = calculateSettlement({
+		makerAmountIn,
+		takerDeposit,
+		makerIsSellETH: apiTrade.maker_is_sell_eth,
+		role,
+		priceWithDelta,
+	});
+
+	return payout;
+}
 
 export function mapApiTradeToUITrade(apiTrade: ApiTrade, userAddress: string): UITrade {
 	const isMaker = apiTrade.maker.toLowerCase() === userAddress.toLowerCase();
@@ -44,8 +71,6 @@ export function mapApiTradeToUITrade(apiTrade: ApiTrade, userAddress: string): U
 	const targetToken = isMaker
 		? (apiTrade.maker_is_sell_eth ? 'USDC' : 'WETH')
 		: (apiTrade.maker_is_sell_eth ? 'WETH' : 'USDC');
-		
-	const targetDecimals = isMaker ? takerTokenDecimals : makerTokenDecimals;
 
 	return {
 		id: apiTrade.trade_id,
@@ -65,9 +90,7 @@ export function mapApiTradeToUITrade(apiTrade: ApiTrade, userAddress: string): U
 		takerDeposit: Number(formatUnits(BigInt(apiTrade.taker_deposit), takerTokenDecimals)),
 		settledTime: apiTrade.settled_at ? new Date(apiTrade.settled_at) : undefined,
 		finalVWAP: safeFormatUnits(apiTrade.settlement_price, VWAP_DECIMALS),
-		receivedAmount: isMaker
-			? safeFormatUnits(apiTrade.maker_payout, takerTokenDecimals)
-			: safeFormatUnits(apiTrade.taker_payout, makerTokenDecimals),
+		receivedAmount: computeReceivedAmount(apiTrade, role),
 		refundedAmount: isMaker
 			? safeFormatUnits(apiTrade.maker_refund, makerTokenDecimals)
 			: safeFormatUnits(apiTrade.taker_refund, takerTokenDecimals),
